@@ -1,0 +1,6 @@
+function confirm {
+  QUESTION="${1:-"Are you sure?"}"
+  sh -c 'read -p "$0 [y/n] " -n 1 -r && echo && \
+  [[ $REPLY =~ [YyAaZz] ]] || exit 1' $QUESTION
+  return $?
+}

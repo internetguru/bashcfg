@@ -1,2 +1,3 @@
+Rozdělení .bashrc do samostatných souborů
 .bashrc: funkce confirm - přidána podpora zsh
 .bashrc: přidána podmínka pro nastavení které není nutné pro zsh
