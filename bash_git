@@ -1,0 +1,91 @@
+[ -z "$CHANGELOG" ] && CHANGELOG=CHANGELOG
+[ -z "$VERSION" ] && VERSION=VERSION
+
+function gitchanges {
+  [[ $(git status --porcelain | wc -l) == 0 ]] && return 0
+  echo "Error: Uncommited changes"
+  return 1
+}
+
+# GIT merge current branch into appropriate branche/s
+function gm {
+  CURBRANCH=$(gcb) || return $?
+  gitchanges || return $?
+  CURVER=$(cat $VERSION)
+  MASTER=$(echo $CURVER | cut -d"." -f1,2)
+  case ${CURBRANCH%-*} in
+    dev|master|$MASTER)
+      echo "Branch '$CURBRANCH' shall not be merged (use gvi)" && return 1 ;;
+    hotfix)
+      TAG=$CURVER ;;
+    release)
+      TAG=${MASTER}.0 ;;
+    *)
+      git rebase dev || return $?
+      COMMITS=$(git log dev..$CURBRANCH --pretty=format:"%s" | tr "\n" "\r")
+      vim -c "s/^/${COMMITS/\//\\\/}/" -c "nohl" +1 $CHANGELOG
+      git commit -am "Version history updated"
+  esac
+  git checkout dev && git merge --no-ff $CURBRANCH || return $?
+  [[ -n "$TAG" ]] && confirm "Merge branch '$CURBRANCH' into $MASTER?" \
+    && git checkout master && ( git checkout $MASTER || git checkout -b $MASTER ) \
+    && git merge --no-ff $CURBRANCH && git tag $TAG \
+    && confirm "Merge branch '$MASTER' into master?" \
+    && git checkout master && git merge $MASTER && git checkout $MASTER
+  if confirm "Delete branch '$CURBRANCH'?"; then
+    git branch -r | grep origin/$CURBRANCH$ >/dev/null && git push origin :$CURBRANCH
+    git branch -d $CURBRANCH
+  fi
+}
+
+# GIT version increment
+function gvi {
+  CURBRANCH=$(gcb)
+  [[ $? != 0 ]] && return $?
+  gitchanges
+  [[ $? != 0 ]] && return $?
+  CURVER=$(cat $VERSION)
+  MAJOR=$(echo $CURVER | cut -d"." -f1)
+  MINOR=$(echo $CURVER | cut -d"." -f2)
+  PATCH=$(echo $CURVER | cut -d"." -f3)
+  case $CURBRANCH in
+    master|${MAJOR}.$MINOR)
+      ((PATCH++))
+      BRANCH="hotfix-${MAJOR}.${MINOR}.$PATCH" ;;
+    dev)
+      ((MINOR++)) && PATCH=0
+      BRANCH="release-${MAJOR}.${MINOR}" ;;
+    *)
+      echo "Unsupported branch $CURBRANCH" && return 1
+  esac
+  git checkout -b $BRANCH
+  CODE=$?
+  [[ $CODE == 128 ]] && git checkout $BRANCH && return $CODE
+  [[ $CODE != 0 ]] && return $CODE
+  NEXTVER=${MAJOR}.${MINOR}.$PATCH
+  echo $NEXTVER > $VERSION
+  [[ $CURBRANCH != dev ]] && git commit -am $BRANCH && return $?
+  HEADER="IGCMS ${MAJOR}.${MINOR} | $(date "+%Y-%m-%d")"
+  printf '\n%s\n\n%s\n' "$HEADER" "$(<$CHANGELOG)" > $CHANGELOG
+  git commit -am $BRANCH && gm && git checkout $BRANCH
+}
+
+# GIT aliases
+alias ghotfix='gvi'
+alias grelease='gvi'
+alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gaas='git add -A; gs'
+alias gclone='_(){ git clone --recursive ${1:-git@bitbucket.org:igwr/cms.git}; }; _'
+alias gd='git diff'
+alias gdc=gdi
+alias gdi='_(){ gd "$(echo $1 | cut -d. -f1)~1..$(echo $1 | cut -d. -f3)" $2; }; _' # git diff inclusive
+alias gdel='_(){ git branch -d $1; git push origin :$1; }; _' # git delete branch local & remote [param BRANCH]
+alias gc='git commit'
+alias gl='git log --decorate --all --oneline --graph' # git log all branches
+alias gls='_(){ git log --decorate --oneline ${1:+$1~1..}; }; _' # git log since [commit] (optional) to HEAD
+alias gpush='git push --all; git push --tags'
+alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
+alias gpullhard='git reset --hard && gpull'
+alias guc='_(){ git reset --soft ${1:-HEAD~1}; }; _' # git uncommit
+alias gup='_(){ git branch -u ${1:-$(echo "origin/$(git status | head -1 | cut -d" " -f 3)")}; }; _' # git track branch
+alias gs='git status && git submodule status'

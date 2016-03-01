@@ -1,0 +1,6 @@
+SRC_FOLDER="$(dirname $0)"
+BASHRC="IG .bashrc, ver. $(cat "$SRC_FOLDER/VERSION") (version)"
+echo $BASHRC
+
+source "$SRC_FOLDER/bash_git"
+source "$SRC_FOLDER/bash_common"

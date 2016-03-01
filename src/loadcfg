@@ -1,8 +1,0 @@
-SRC_FOLDER="$(dirname $0)"
-BASHRC="IG .bashrc, ver. $(cat "$SRC_FOLDER/../VERSION") (version)"
-echo $BASHRC
-
-source "$SRC_FOLDER/settings"
-source "$SRC_FOLDER/global_functions"
-source "$SRC_FOLDER/global_aliases"
-source "$SRC_FOLDER/git"
