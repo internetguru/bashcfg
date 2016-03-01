@@ -32,37 +32,43 @@ On_White='\e[47m'       # White
 # Color reset
 NC="\e[m"
 
+# get shell name
+SHELL_NAME=$(basename "$(readlink -f /proc/$$/exe)")
+
+export PATH=$PATH:/var/scripts
+
 # set local variables (definable in .bash_profile)
 [ -z "$CMS_FOLDER" ] && CMS_FOLDER="$HOME/cms"
-[ -z "$SU" ] && SU=$BCyan
-[ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 [ -z "$CHANGELOG" ] && CHANGELOG=CHANGELOG
 [ -z "$VERSION" ] && VERSION=VERSION
 
-PS1="$MYPS1"
-export PATH=$PATH:/var/scripts
+if [[ $SHELL_NAME != "zsh" ]]; then
+  [ -z "$SU" ] && SU=$BCyan
+  [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
+  PS1="$MYPS1"
+  # don't put duplicate lines in the history. See bash(1) for more options
+  # don't overwrite GNU Midnight Commander's setting of `ignorespace'.
+  HISTCONTROL=$HISTCONTROL${HISTCONTROL+:}ignoredups
+  # ... or force ignoredups and ignorespace
+  HISTCONTROL=ignoreboth
+  # append to the history file, don't overwrite it
+  shopt -s histappend
 
-# don't put duplicate lines in the history. See bash(1) for more options
-# don't overwrite GNU Midnight Commander's setting of `ignorespace'.
-HISTCONTROL=$HISTCONTROL${HISTCONTROL+:}ignoredups
-# ... or force ignoredups and ignorespace
-HISTCONTROL=ignoreboth
-# append to the history file, don't overwrite it
-shopt -s histappend
+  # env color settings
+  if [ -x /usr/bin/dircolors ]; then
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  alias ls='ls --color=auto'
+  fi
+  export TERM=xterm-256color
 
-# env color settings
-if [ -x /usr/bin/dircolors ]; then
-test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-alias ls='ls --color=auto'
+  #ssh-agent
+  start=0
+  ps | grep -q ssh-agent || start=1 # start ssh if not running
+  ((start)) && ssh-agent > ~/ssh-agent.sh # run ssh-agent and save output (variables)
+  source ~/ssh-agent.sh # register saved variables
+  ((start)) && ssh-add ~/.ssh/id_rsa # add private key on start
 fi
-export TERM=xterm-256color
 
-#ssh-agent
-start=0
-ps | grep -q ssh-agent || start=1 # start ssh if not running
-((start)) && ssh-agent > ~/ssh-agent.sh # run ssh-agent and save output (variables)
-source ~/ssh-agent.sh # register saved variables
-((start)) && ssh-add ~/.ssh/id_rsa # add private key on start
 
 function confirm {
   read -p "${1:-"Are you sure?"} [y/n] " -n 1 -r && echo
