@@ -71,8 +71,10 @@ fi
 
 
 function confirm {
-  read -p "${1:-"Are you sure?"} [y/n] " -n 1 -r && echo
-  [[ $REPLY =~ [YyAaZz] ]] || return 1
+  QUESTION="${1:-"Are you sure?"}"
+  sh -c 'read -p "$0 [y/n] " -n 1 -r && echo && \
+  [[ $REPLY =~ [YyAaZz] ]] || exit 1' $QUESTION
+  return $?
 }
 
 function gitchanges {
