@@ -1,0 +1,121 @@
+#!/bin/bash
+
+[ -z "$CHANGELOG" ] && CHANGELOG=CHANGELOG
+[ -z "$VERSION" ] && VERSION=VERSION
+
+# Are all changes committed?
+function git_status_empty {
+  [[ $(git status --porcelain | wc -l) == 0 ]] && return 0
+  echo "Error: Uncommited changes"
+  return 1
+}
+
+# see http://nvie.com/posts/a-successful-git-branching-model/
+#
+# Current branch:
+#
+#  dev
+#   - increment MINOR version, set PATCH to 0
+#   - create release-MAJOR.MINOR branch
+#
+#  master, MASTER (like 1.10)
+#   - increment PATCH version
+#   - create hotfix-MAJOR.MINOR.PATCH branch
+#
+#  hotfix-x or release-x; alias current
+#   - merge dev branch with current
+#   - prompt to merge master with current
+#   - ^ yes: merge master with current, add tag to master
+#   - ^ success: prompt to merge MASTER with master
+#   - ^ yes: merge MASTER with master
+#   - prompt to delete current
+#
+#  feature
+#   - update version history (CHANGELOG)
+#   - merge dev branch with feature
+#   - prompt to delete branch
+#
+function git_flow {
+  CURBRANCH=$(gcb) || return $?
+  git_status_empty || return $?
+  IFS=. eval "read MAJOR MINOR PATCH < $VERSION"
+  MASTER=${MAJOR}.$MINOR
+  CURVER=${MASTER}.$PATCH
+  case ${CURBRANCH%-*} in
+    dev|master|$MASTER)
+      BRANCH="hotfix-${MASTER}.$((++PATCH))"
+      [[ $CURBRANCH == dev ]] && BRANCH="release-${MAJOR}.$((++MINOR))" && PATCH=0
+      git checkout -b $BRANCH
+      CODE=$?
+      [[ $CODE == 128 ]] && git checkout $BRANCH && return $CODE
+      [[ $CODE != 0 ]] && return $CODE
+      NEXTVER=${MAJOR}.${MINOR}.$PATCH
+      echo $NEXTVER > $VERSION
+      [[ $CURBRANCH != dev ]] && git commit -am $BRANCH && return $?
+      HEADER="IGCMS ${MAJOR}.${MINOR} | $(date "+%Y-%m-%d")"
+      printf '\n%s\n\n%s\n' "$HEADER" "$(<$CHANGELOG)" > $CHANGELOG
+      git commit -am $BRANCH && gm && git checkout $BRANCH
+      ;;
+    hotfix)
+      TAG=$CURVER
+      ;&
+    release)
+      [[ -z "$TAG" ]] && TAG=${MASTER}.0
+      ;&
+    *)
+      if [[ -z "$TAG" ]]; then
+        git rebase dev || return $?
+        COMMITS=$(git log dev..$CURBRANCH --pretty=format:"%s" | tr "\n" "\r")
+        vim -c "s/^/${COMMITS/\//\\\/}/" -c "nohl" +1 $CHANGELOG
+        git commit -am "Version history updated"
+      fi
+      git checkout dev && git merge --no-ff $CURBRANCH || return $?
+      [[ -n "$TAG" ]] && confirm "Merge branch '$CURBRANCH' into $MASTER?" \
+        && git checkout master && ( git checkout $MASTER || git checkout -b $MASTER ) \
+        && git merge --no-ff $CURBRANCH && git tag $TAG \
+        && confirm "Merge branch '$MASTER' into master?" \
+        && git checkout master && git merge $MASTER && git checkout $MASTER
+      if confirm "Delete branch '$CURBRANCH'?"; then
+        git branch -r | grep origin/$CURBRANCH$ >/dev/null && git push origin :$CURBRANCH
+        git branch -d $CURBRANCH
+      fi
+  esac
+}
+
+function git_diff_inclusive {
+  RANGE=${1:-HEAD}
+  IFS=.
+  read FROM junk TO <<< $RANGE
+  [[ -z $TO ]] && TO=$FROM
+  git diff $FROM~1..$TO $2
+}
+
+function git_delete_branch {
+  [[ -z $1 ]] && echo "Missing branch name" && return 1
+  git branch -d $1 && git push origin :$1
+}
+
+function git_log_since {
+  git log --decorate --oneline ${1:+$1~1..}
+}
+
+function git_upstream {
+  git branch -u "origin/${1:-$(gcb)}"
+}
+
+# GIT aliases
+alias gf='git_flow'
+alias gdi='git_diff_inclusive'
+alias gdb='git_delete_branch'
+alias gls='git_log_since'
+alias gup='git_upstream'
+alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gd='git diff'
+alias gc='git commit'
+alias gl='git log --decorate --all --oneline --graph' # git log all branches
+alias gpush='git push --all; git push --tags'
+alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
+alias gpullhard='git reset --hard && gpull'
+alias guc='git reset --soft HEAD~1' # git uncommit
+alias gs='git status && git submodule status'
+alias gaas='git add -A; gs'
