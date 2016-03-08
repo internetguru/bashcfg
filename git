@@ -11,6 +11,30 @@ function git_status_empty {
 }
 
 # see http://nvie.com/posts/a-successful-git-branching-model/
+#
+# Current branch:
+#
+#  dev
+#   - increment MINOR version, set PATCH to 0
+#   - create release-MAJOR.MINOR branch
+#
+#  master, MASTER (like 1.10)
+#   - increment PATCH version
+#   - create hotfix-MAJOR.MINOR.PATCH branch
+#
+#  hotfix-x or release-x; alias current
+#   - merge dev branch with current
+#   - prompt to merge master with current
+#   - ^ yes: merge master with current, add tag to master
+#   - ^ success: prompt to merge MASTER with master
+#   - ^ yes: merge MASTER with master
+#   - prompt to delete current
+#
+#  feature
+#   - update version history (CHANGELOG)
+#   - merge dev branch with feature
+#   - prompt to delete branch
+#
 function git_flow {
   CURBRANCH=$(gcb) || return $?
   git_status_empty || return $?
