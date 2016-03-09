@@ -112,7 +112,7 @@ alias gup='git_upstream'
 alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
 alias gd='git diff'
 alias gc='git commit'
-alias gl="git log --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)(%cr)%C(bold blue)<%an>%Creset'" # git log all branches
+alias gl="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)(%cr)%C(bold blue)<%an>%Creset'" # git log all branches
 alias gpush='git push --all; git push --tags'
 alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
 alias gpullhard='git reset --hard && gpull'
