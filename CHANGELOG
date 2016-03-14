@@ -1,3 +1,4 @@
+git: gl zobrazuje aktuální větev, přidány aliasy gla a gll
 git: refaktor gm a gvi na git_flow
 .bashrc: rozdělení do samostatných souborů
 .bashrc: funkce confirm - přidána podpora zsh
