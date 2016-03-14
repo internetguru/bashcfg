@@ -54,7 +54,7 @@ function git_flow {
       [[ $CURBRANCH != dev ]] && git commit -am $BRANCH && return $?
       HEADER="IGCMS ${MAJOR}.${MINOR} | $(date "+%Y-%m-%d")"
       printf '\n%s\n\n%s\n' "$HEADER" "$(<$CHANGELOG)" > $CHANGELOG
-      git commit -am $BRANCH && gm && git checkout $BRANCH
+      git commit -am $BRANCH && git_flow && git checkout $BRANCH
       ;;
     hotfix)
       TAG=$CURVER
