@@ -1,3 +1,6 @@
+
+IGCMS 0.1 | 2016-03-14
+
 git: gl zobrazuje aktuální větev, přidány aliasy gla a gll
 git: refaktor gm a gvi na git_flow
 .bashrc: rozdělení do samostatných souborů
