@@ -52,7 +52,7 @@ function git_flow {
       NEXTVER=${MAJOR}.${MINOR}.$PATCH
       echo $NEXTVER > $VERSION
       [[ $CURBRANCH != dev ]] && git commit -am $BRANCH && return $?
-      HEADER="IGCMS ${MAJOR}.${MINOR} | $(date "+%Y-%m-%d")"
+      HEADER="${MAJOR}.${MINOR} | $(date "+%Y-%m-%d")"
       printf '\n%s\n\n%s\n' "$HEADER" "$(<$CHANGELOG)" > $CHANGELOG
       git commit -am $BRANCH && git_flow && git checkout $BRANCH
       ;;
