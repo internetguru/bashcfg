@@ -110,6 +110,7 @@ alias gdb='git_delete_branch'
 alias gls='git_log_since'
 alias gup='git_upstream'
 alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gb='git checkout -b'
 alias gd='git diff'
 alias gc='git commit'
 alias gl="git log --oneline --decorate --color --graph"
