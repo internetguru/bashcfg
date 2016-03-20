@@ -76,7 +76,8 @@ function git_flow {
         && confirm "Merge branch '$MASTER' into master?" \
         && git checkout master && git merge $MASTER && git checkout $MASTER
       if confirm "Delete branch '$CURBRANCH'?"; then
-        git branch -r | grep origin/$CURBRANCH$ >/dev/null && git push origin :$CURBRANCH
+        git branch -r | grep origin/$CURBRANCH$ >/dev/null \
+        && git push origin :refs/heads/$CURBRANCH
         git branch -d $CURBRANCH
       fi
   esac
@@ -91,11 +92,13 @@ function git_diff_inclusive {
 }
 
 function git_delete_branch {
-  git branch -d $1 && git push origin :$1
+  git branch -d $1
+  git push origin :refs/heads/$1
 }
 
 function git_delete_tag {
-  git tag -d $1 && git push origin :refs/tags/$1
+  git tag -d $1
+  git push origin :refs/tags/$1
 }
 
 function git_log_since {
