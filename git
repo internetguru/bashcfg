@@ -94,6 +94,10 @@ function git_delete_branch {
   git branch -d $1 && git push origin :$1
 }
 
+function git_delete_tag {
+  git tag -d $1 && git push origin :refs/tags/$1
+}
+
 function git_log_since {
   git log --decorate --oneline ${1:+$1~1..}
 }
@@ -106,6 +110,7 @@ function git_upstream {
 alias gf='git_flow'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
+alias gdt='git_delete_tag'
 alias gls='git_log_since'
 alias gup='git_upstream'
 alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
