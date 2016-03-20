@@ -91,7 +91,6 @@ function git_diff_inclusive {
 }
 
 function git_delete_branch {
-  [[ -z $1 ]] && echo "Missing branch name" && return 1
   git branch -d $1 && git push origin :$1
 }
 
