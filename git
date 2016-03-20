@@ -120,6 +120,7 @@ alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
 alias gb='git checkout -b'
 alias gd='git diff'
 alias gc='git commit'
+alias gch='git checkout'
 alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
 alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
