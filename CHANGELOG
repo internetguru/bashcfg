@@ -1,3 +1,6 @@
+
+0.2 | 2016-03-20
+
 git: přidána funkce/alias git_delete_tag/gdt
 git: přidán alias gb: git checkout -b
 
