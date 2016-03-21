@@ -36,22 +36,22 @@ function git_status_empty {
 #   - prompt to delete branch
 #
 function git_flow {
-  local curbranch=$(gcb) || return $?
+  local curbranch; curbranch=$(gcb) || return $?
   git_status_empty || return $?
   local major minor patch tag
   IFS=. eval "read major minor patch < $VERSION"
-  local master=${major}.$minor
+  local master; master=${major}.$minor
   case ${curbranch%-*} in
     dev|master|$master)
-      local branch="hotfix-${master}.$((++patch))"
+      local branch; branch="hotfix-${master}.$((++patch))"
       [[ $curbranch == dev ]] && branch="release-${major}.$((++minor))" && patch=0
       git checkout -b $branch
-      local code=$?
+      local code; code=$?
       [[ $code == 128 ]] && git checkout $branch && return $code
       [[ $code != 0 ]] && return $code
       echo ${major}.${minor}.$patch > $VERSION
       [[ $curbranch != dev ]] && git commit -am $branch && return $?
-      local header="${major}.${minor} | $(date "+%Y-%m-%d")"
+      local header; header="${major}.${minor} | $(date "+%Y-%m-%d")"
       printf '\n%s\n\n%s\n' "$header" "$(<$CHANGELOG)" > $CHANGELOG
       git commit -am $branch && git_flow && git checkout $branch
       ;;
@@ -64,7 +64,7 @@ function git_flow {
     *)
       if [[ -z "$tag" ]]; then
         git rebase dev || return $?
-        local commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
+        local commits; commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
         vim -c "s/^/${commits//\//\\\/}/" -c "nohl" +1 $CHANGELOG
         git commit -am "Version history updated"
       fi
