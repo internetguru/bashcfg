@@ -67,7 +67,7 @@ function git_flow {
         local commits
         git rebase dev || return $?
         commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
-        vim -c "s/^/${commits//\//\\\/}/" -c "nohl" +1 $CHANGELOG
+        vim -c "s/^/+++\r${commits//\//\\\/}\r+++\r/" -c "nohl" +1 $CHANGELOG
         git commit -am "Version history updated"
       fi
       git checkout dev && git merge --no-ff $curbranch || return $?
