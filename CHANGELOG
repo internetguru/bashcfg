@@ -1,4 +1,8 @@
 
+0.4 | 2016-03-22
+
+git_flow: přidáno +++ před/za commity v souboru CHANGELOG
+
 0.3 | 2016-03-20
 
 git: přidán alias gch: git checkout
