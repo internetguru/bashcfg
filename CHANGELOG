@@ -1,3 +1,4 @@
+git: přidána funkce/alias git_flow_init/gfi
 git: přidána funkce git_repo_exist
 git: přidána funkce git_branch_exist
 
