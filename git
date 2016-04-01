@@ -36,6 +36,7 @@ function git_status_empty {
 #   - prompt to delete branch
 #
 function git_flow {
+  git_repo_exist || { echo "Use git_flow_init" 2>&1; return 1; }
   local curbranch major minor patch tag master
   curbranch=$(gcb) || return $?
   git_status_empty || return $?
