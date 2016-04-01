@@ -36,7 +36,7 @@ function git_status_empty {
 #   - prompt to delete branch
 #
 function git_flow {
-  git_repo_exist || { echo "Use git_flow_init" 2>&1; return 1; }
+  git_repo_exists || { echo "Use git_flow_init" 2>&1; return 1; }
   local curbranch major minor patch tag master
   curbranch=$(gcb) || return $?
   git_status_empty || return $?
@@ -86,18 +86,18 @@ function git_flow {
 }
 
 function git_flow_init {
-  git_repo_exist 2>/dev/null || git init
+  git_repo_exists 2>/dev/null || git init
   git_status_empty || return $?
   local commit
   commit=false
-  git_branch_exist master 2>/dev/null \
-    && git checkout master
-  [[ ! -f VERSION ]] && echo 0.0.0 > VERSION \
-    && echo "creating VERSION file" && commit=true
-  [[ ! -f CHANGELOG ]] && touch CHANGELOG \
-    && echo "creating CHANGELOG file" && commit=true
-  $commit && git add -A && git commit -am "git flow init"
-  git_branch_exist dev 2>/dev/null || (git checkout master && git checkout -b dev)
+  git checkout master || { echo "Branch master not found"; exit 1; }
+  [[ ! -f $VERSION ]] && echo 0.0.0 > $VERSION \
+    && echo "version file $VERSION created" && commit=true
+  [[ ! -f $CHANGELOG ]] && touch $CHANGELOG \
+    && echo "changelog file $CHANGELOG created" && commit=true
+  $commit && git add -A && git commit -am "init git flow"
+  git_branch_exists dev 2>/dev/null || git branch dev
+  git checkout dev
 }
 
 function git_diff_inclusive {
@@ -125,13 +125,13 @@ function git_upstream {
   git branch -u "origin/${1:-$(gcb)}"
 }
 
-function git_branch_exist {
+function git_branch_exists {
   git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
   echo "Error: branch $1 does not exist" 1>&2
   return 1
 }
 
-function git_repo_exist {
+function git_repo_exists {
   [[ -d .git ]] && return 0
   echo "Error: git repository does not exist" 1>&2
   return 1
