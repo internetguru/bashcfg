@@ -6,7 +6,7 @@
 # Are all changes committed?
 function git_status_empty {
   [[ $(git status --porcelain | wc -l) == 0 ]] && return 0
-  echo "Error: Uncommited changes"
+  echo "Error: Uncommited changes" 1>&2
   return 1
 }
 
@@ -111,13 +111,13 @@ function git_upstream {
 
 function git_branch_exist {
   git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
-  echo "Error: branch $1 does not exist"
+  echo "Error: branch $1 does not exist" 1>&2
   return 1
 }
 
 function git_repo_exist {
   [[ -d .git ]] && return 0
-  echo "Error: git repository does not exist"
+  echo "Error: git repository does not exist" 1>&2
   return 1
 }
 
