@@ -87,7 +87,7 @@ function git_flow {
 function git_diff_inclusive {
   local from to
   IFS=. eval "read from junk to <<< ${1:-HEAD}"
-  [[ -z $to ]] && TO=$from
+  [[ -z $to ]] && to=$from
   git diff $from~1..$to $2
 }
 
