@@ -88,17 +88,15 @@ function git_flow {
 function git_flow_init {
   git_repo_exist 2>/dev/null || git init
   git_status_empty || return $?
-  local -i commit
-  commit=0
+  local commit
+  commit=false
   git_branch_exist master 2>/dev/null \
     && git checkout master
   [[ ! -f VERSION ]] && echo 0.0.0 > VERSION \
-    && echo "creating VERSION file" && commit=1
+    && echo "creating VERSION file" && commit=true
   [[ ! -f CHANGELOG ]] && touch CHANGELOG \
-    && echo "creating CHANGELOG file" && commit=1
-  [[ $commit == 1 ]] \
-    && git add -A \
-    && git commit -am "git flow init"
+    && echo "creating CHANGELOG file" && commit=true
+  $commit && git add -A && git commit -am "git flow init"
   git_branch_exist dev 2>/dev/null || (git checkout master && git checkout -b dev)
 }
 
