@@ -6,7 +6,7 @@
 # Are all changes committed?
 function git_status_empty {
   [[ $(git status --porcelain | wc -l) == 0 ]] && return 0
-  echo "Error: Uncommited changes"
+  echo "Error: Uncommited changes" 1>&2
   return 1
 }
 
@@ -36,22 +36,24 @@ function git_status_empty {
 #   - prompt to delete branch
 #
 function git_flow {
-  local curbranch; curbranch=$(gcb) || return $?
+  git_repo_exists || { echo "Use git_flow_init" 2>&1; return 1; }
+  local curbranch major minor patch tag master
+  curbranch=$(gcb) || return $?
   git_status_empty || return $?
-  local major minor patch tag
   IFS=. eval "read major minor patch < $VERSION"
-  local master; master=${major}.$minor
+  master=${major}.$minor
   case ${curbranch%-*} in
     dev|master|$master)
-      local branch; branch="hotfix-${master}.$((++patch))"
+      local branch code header
+      branch="hotfix-${master}.$((++patch))"
       [[ $curbranch == dev ]] && branch="release-${major}.$((++minor))" && patch=0
       git checkout -b $branch
-      local code; code=$?
+      code=$?
       [[ $code == 128 ]] && git checkout $branch && return $code
       [[ $code != 0 ]] && return $code
       echo ${major}.${minor}.$patch > $VERSION
       [[ $curbranch != dev ]] && git commit -am $branch && return $?
-      local header; header="${major}.${minor} | $(date "+%Y-%m-%d")"
+      header="${major}.${minor} | $(date "+%Y-%m-%d")"
       printf '\n%s\n\n%s\n' "$header" "$(<$CHANGELOG)" > $CHANGELOG
       git commit -am $branch && git_flow && git checkout $branch
       ;;
@@ -63,9 +65,10 @@ function git_flow {
       ;&
     *)
       if [[ -z "$tag" ]]; then
+        local commits
         git rebase dev || return $?
-        local commits; commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
-        vim -c "s/^/${commits//\//\\\/}/" -c "nohl" +1 $CHANGELOG
+        commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
+        vim -c "s/^/+++\r${commits//\//\\\/}\r+++\r/" -c "nohl" +1 $CHANGELOG
         git commit -am "Version history updated"
       fi
       git checkout dev && git merge --no-ff $curbranch || return $?
@@ -82,10 +85,25 @@ function git_flow {
   esac
 }
 
+function git_flow_init {
+  git_repo_exists 2>/dev/null || git init
+  git_status_empty || return $?
+  local commit
+  commit=false
+  git checkout master || { echo "Branch master not found"; exit 1; }
+  [[ ! -f $VERSION ]] && echo 0.0.0 > $VERSION \
+    && echo "version file $VERSION created" && commit=true
+  [[ ! -f $CHANGELOG ]] && touch $CHANGELOG \
+    && echo "changelog file $CHANGELOG created" && commit=true
+  $commit && git add -A && git commit -am "init git flow"
+  git_branch_exists dev 2>/dev/null || git branch dev
+  git checkout dev
+}
+
 function git_diff_inclusive {
   local from to
   IFS=. eval "read from junk to <<< ${1:-HEAD}"
-  [[ -z $to ]] && TO=$from
+  [[ -z $to ]] && to=$from
   git diff $from~1..$to $2
 }
 
@@ -107,8 +125,21 @@ function git_upstream {
   git branch -u "origin/${1:-$(gcb)}"
 }
 
+function git_branch_exists {
+  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
+  echo "Error: branch $1 does not exist" 1>&2
+  return 1
+}
+
+function git_repo_exists {
+  [[ -d .git ]] && return 0
+  echo "Error: git repository does not exist" 1>&2
+  return 1
+}
+
 # GIT aliases
 alias gf='git_flow'
+alias gfi='git_flow_init'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'

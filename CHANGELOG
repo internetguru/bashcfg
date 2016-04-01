@@ -1,4 +1,15 @@
 
+0.5 | 2016-04-01
+
+git_flow: přidána kontrola na exitenci gitu
+git: přidána funkce/alias git_flow_init/gfi
+git: přidána funkce git_repo_exist
+git: přidána funkce git_branch_exist
+
+0.4 | 2016-03-22
+
+git_flow: přidáno +++ před/za commity v souboru CHANGELOG
+
 0.3 | 2016-03-20
 
 git: přidán alias gch: git checkout
