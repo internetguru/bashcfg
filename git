@@ -85,7 +85,7 @@ function git_flow {
 }
 
 function git_flow_init {
-  git_repo_exist || return $?
+  git_repo_exist 2>/dev/null || git init
   git_status_empty || return $?
   local -i commit
   commit=0
