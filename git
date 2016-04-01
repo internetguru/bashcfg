@@ -109,6 +109,11 @@ function git_upstream {
   git branch -u "origin/${1:-$(gcb)}"
 }
 
+function git_branch_exist {
+  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null
+  [[ $? != 0 ]] && return 1
+}
+
 # GIT aliases
 alias gf='git_flow'
 alias gdi='git_diff_inclusive'
