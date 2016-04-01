@@ -84,6 +84,23 @@ function git_flow {
   esac
 }
 
+function git_flow_init {
+  git_repo_exist || return $?
+  git_status_empty || return $?
+  local -i commit
+  commit=0
+  git_branch_exist master 2>/dev/null \
+    && git checkout master
+  [[ ! -f VERSION ]] && echo 0.0.0 > VERSION \
+    && echo "creating VERSION file" && commit=1
+  [[ ! -f CHANGELOG ]] && touch CHANGELOG \
+    && echo "creating CHANGELOG file" && commit=1
+  [[ $commit == 1 ]] \
+    && git add -A \
+    && git commit -am "git flow init"
+  git_branch_exist dev 2>/dev/null || (git checkout master && git checkout -b dev)
+}
+
 function git_diff_inclusive {
   local from to
   IFS=. eval "read from junk to <<< ${1:-HEAD}"
@@ -123,6 +140,7 @@ function git_repo_exist {
 
 # GIT aliases
 alias gf='git_flow'
+alias gfi='git_flow_init'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
