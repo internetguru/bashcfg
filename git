@@ -116,7 +116,7 @@ function git_branch_exist {
 }
 
 function git_repo_exist {
-  git log 1>/dev/null 2>/dev/null && return 0
+  [[ -d .git ]] && return 0
   echo "Error: git repository does not exist"
   return 1
 }
