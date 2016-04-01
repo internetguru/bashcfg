@@ -110,13 +110,15 @@ function git_upstream {
 }
 
 function git_branch_exist {
-  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null
-  [[ $? != 0 ]] && return 1
+  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
+  echo "Error: branch $1 does not exist"
+  return 1
 }
 
 function git_repo_exist {
-  git log 1>/dev/null 2>/dev/null
-  [[ $? != 0 ]] && return 1
+  git log 1>/dev/null 2>/dev/null && return 0
+  echo "Error: git repository does not exist"
+  return 1
 }
 
 # GIT aliases
