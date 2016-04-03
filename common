@@ -35,10 +35,12 @@ NC="\e[m"
 [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 
 function confirm {
-  QUESTION="${1:-"Are you sure?"}"
-  sh -c 'read -p "$0 [y/n] " -n 1 -r && echo && \
-  [[ $REPLY =~ [YyAaZz] ]] || exit 1' "$QUESTION"
-  return $?
+  echo -n "${@:-"Are you sure?"} [y/n] "
+  read -e answer
+  for response in z Z a A y Y yes YES Yes Sure sure SURE OK ok Ok; do
+    [ "_$answer" == "_$response" ] && return 0
+  done
+  return 1
 }
 
 alias .='cd ~'
