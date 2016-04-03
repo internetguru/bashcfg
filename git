@@ -86,11 +86,13 @@ function git_flow {
 }
 
 function git_flow_init {
-  git_repo_exists 2>/dev/null || git init
+  local commit checkout_master=true
+  git_repo_exists 2>/dev/null || { git init; checkout_master=false; }
   git_status_empty || return $?
-  local commit
   commit=false
-  git checkout master || { echo "Branch master not found"; exit 1; }
+  $checkout_master \
+    && { git checkout master 2>/dev/null \
+    || { echo "Branch master not found"; return 1; }; }
   [[ ! -f $VERSION ]] && echo 0.0.0 > $VERSION \
     && echo "version file $VERSION created" && commit=true
   [[ ! -f $CHANGELOG ]] && touch $CHANGELOG \
