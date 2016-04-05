@@ -65,10 +65,18 @@ function git_flow {
       ;&
     *)
       if [[ -z "$tag" ]]; then
-        local commits
+        local commits tmpfile msg
         git rebase dev || return $?
-        commits=$(git log dev..$curbranch --pretty=format:"%s" | tr "\n" "\r")
-        vim -c "s/^/+++\r${commits//\//\\\/}\r+++\r/" -c "nohl" +1 $CHANGELOG
+        commits=$(git log dev..$curbranch --pretty=format:"%s")
+        tmpfile="$(mktemp)"
+        echo -e "\n# commits:" > "$tmpfile"
+        echo -e "$commits\n" | sed 's/^/#   /g' >> "$tmpfile"
+        echo -e "# Please enter the message for your changes. Lines starting\n\
+# with # and empty lines will be ignored." >> "$tmpfile"
+        $(git config --global core.editor) "$tmpfile"
+        sed -i '/^\s*\(#\|$\)/d' "$tmpfile"
+        msg="$(cat "$tmpfile")";
+        [[ -n "$msg" ]] && echo -e "$msg" | cat - "$CHANGELOG" | tee "$CHANGELOG"
         git commit -am "Version history updated"
       fi
       git checkout dev && git merge --no-ff $curbranch || return $?
