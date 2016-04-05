@@ -36,9 +36,9 @@ NC="\e[m"
 
 function confirm {
   echo -n "${@:-"Are you sure?"} [y/n] "
-  read -e answer
+  read
   for response in z Z a A y Y yes YES Yes Sure sure SURE OK ok Ok; do
-    [ "_$answer" == "_$response" ] && return 0
+    [[ "_$REPLY" == "_$response" ]] && return 0
   done
   return 1
 }
