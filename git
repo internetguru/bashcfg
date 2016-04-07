@@ -1,12 +1,15 @@
 #!/bin/bash
 
-[ -z "$CHANGELOG" ] && CHANGELOG=CHANGELOG
-[ -z "$VERSION" ] && VERSION=VERSION
+: ${CHANGELOG:=CHANGELOG}
+: ${VERSION:=VERSION}
+
+function err { echo "$0[error]: $@" >&2; return 1; }
+#function err { printf -- "$0[error]: %s\n" "$@" >&2; return 1 }
 
 # Are all changes committed?
 function git_status_empty {
-  [[ $(git status --porcelain | wc -l) == 0 ]] && return 0
-  echo "Error: Uncommited changes" 1>&2
+  [[ -z "$(git status --porcelain)" ]] && return 0
+  err "Uncommited changes"
   return 1
 }
 
@@ -36,11 +39,11 @@ function git_status_empty {
 #   - prompt to delete branch
 #
 function git_flow {
-  git_repo_exists || { echo "Use git_flow_init" 2>&1; return 1; }
+  git_repo_exists || err "Use git_flow_init" || return 1
   local curbranch major minor patch tag master
   curbranch=$(gcb) || return $?
   git_status_empty || return $?
-  IFS=. eval "read major minor patch < $VERSION"
+  oIFS=$IFS; IFS=.; read major minor patch < "$VERSION"; IFS=$oIFS
   master=${major}.$minor
   case ${curbranch%-*} in
     dev|master|$master)
@@ -73,8 +76,7 @@ function git_flow {
         echo -e "\n# Please enter the message for your changes. Lines starting" >> "$tmpfile"
         echo -e "# with # and empty lines will be ignored." >> "$tmpfile"
         "${EDITOR:-vi}" "$tmpfile"
-        sed -i '/^\s*\(#\|$\)/d' "$tmpfile"
-        sed -i '/^\s+/d' "$tmpfile"
+        sed -i '/^\s*\(#\|$\)/d;/^\s+/d' "$tmpfile"
         cat "$CHANGELOG" >> "$tmpfile" && mv "$tmpfile" "$CHANGELOG"
         git commit -am "Version history updated"
       fi
