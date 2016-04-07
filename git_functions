@@ -1,0 +1,48 @@
+#!/bin/bash
+
+: ${CHANGELOG:=CHANGELOG}
+: ${VERSION:=VERSION}
+
+# Are all changes committed?
+function git_status_empty {
+  [[ -z "$(git status --porcelain)" ]] && return 0
+  err "Uncommited changes"
+  return 1
+}
+
+function git_diff_inclusive {
+  local from to
+  oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
+  [[ -z $to ]] && to=$from
+  git diff $from~1..$to $2
+}
+
+function git_delete_branch {
+  git branch -d $1
+  git push origin :refs/heads/$1
+}
+
+function git_delete_tag {
+  git tag -d $1
+  git push origin :refs/tags/$1
+}
+
+function git_log_since {
+  git log --decorate --oneline ${1:+$1~1..}
+}
+
+function git_upstream {
+  git branch -u "origin/${1:-$(gcb)}"
+}
+
+function git_branch_exists {
+  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
+  err "Branch $1 does not exist"
+  return 1
+}
+
+function git_repo_exists {
+  [[ -d .git ]] && return 0
+  err "Git repository does not exist"
+  return 1
+}

@@ -34,13 +34,6 @@ NC="\e[m"
 [ -z "$SU" ] && SU=$BCyan
 [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 
-function confirm {
-  # locale -k LC_MESSAGES
-  echo -n "${@:-"Are you sure?"} [y/n] "
-  read
-  [[ "$REPLY" =~ ^([zZ]|[aA]|[yY][eE][sS])$ ]]
-}
-
 alias .='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+: ${SCRIPT_NAME:=$(basename "$0")}
+BWhite='\e[1;37m'
+NC="\e[m"
+
+function confirm {
+  local varname var
+  for var in $(locale -k LC_MESSAGES | head -n-1); do
+    varname=${var%=*}
+    var="${var#*=\"}"
+    var="${var%\"}"
+    declare $varname="$var"
+  done
+  echo -n "${@:-"Are you sure?"} [$yesstr/$nostr] "
+  read
+  [[ "$REPLY" =~ $yesexpr ]]
+}
+
+function colorize {
+  sed "s/--\?[a-zA-Z]\+\|$SCRIPT_NAME\|^[A-Z].\+/\\$BWhite\0\\$NC/g"
+}
+
+
+function formatUsage {
+  echo -e "$1" | fmt -w $(tput cols) | colorize
+}
+
+function err { echo "${0}[error]: $@" >&2; return 1; }
+#function err { printf -- "$0[error]: %s\n" "$@" >&2; return 1 }
