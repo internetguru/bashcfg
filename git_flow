@@ -1,31 +1,15 @@
 #!/bin/bash
 
 SCRIPT_NAME="$(basename "$0")"
-source "$(dirname "$0")/globals"
-source "$(dirname "$0")/git_functions"
+: ${CHANGELOG:=CHANGELOG}
+: ${VERSION:=VERSION}
 
 function git_flow {
 
   ## defaults and constants
-  local usage line init
-  usage="$(formatUsage "
-  DESCRIPTION
-         $SCRIPT_NAME automatically create or merge branches according to git flow model mentioned below. Also automatically increment version and help with creating changelog. For more informations see man $SCRIPT_NAME.
-
-  USAGE
-         $SCRIPT_NAME [-ih]
-
-  OPTIONS
-         -i, --init
-                Initialize current folder to be compatible with git flow model
-
-         -h, --help
-                This help (usage).
-
-  SEE
-         Git flow model: http://nvie.com/posts/a-successful-git-branching-model/
-  ")"
+  local usage line init BWhite NC
   init=false
+  NC="\e[m"
 
   ## process options
   if ! line=$(
@@ -48,7 +32,69 @@ function git_flow {
     esac
   done
 
+  ## usage
+  function colorize {
+    sed "s/--\?[a-zA-Z]\+\|$SCRIPT_NAME\|^[A-Z].\+/\\$BWhite\0\\$NC/g"
+  }
+
+  function formatUsage {
+    echo -e "$1" | fmt -w $(tput cols) | colorize
+  }
+
+  usage="$(formatUsage "
+  DESCRIPTION
+         $SCRIPT_NAME automatically create or merge branches according to git flow model mentioned below. Also automatically increment version and help with creating changelog. For more informations see man $SCRIPT_NAME.
+
+  USAGE
+         $SCRIPT_NAME [-ih]
+
+  OPTIONS
+         -i, --init
+                Initialize current folder to be compatible with git flow model
+
+         -h, --help
+                This help (usage).
+
+  SEE
+         Git flow model: http://nvie.com/posts/a-successful-git-branching-model/
+  ")"
+
   ## functions
+
+  # Are all changes committed?
+  function git_status_empty {
+    [[ -z "$(git status --porcelain)" ]] && return 0
+    err "Uncommited changes"
+    return 1
+  }
+
+  function git_branch_exists {
+    git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
+    err "Branch $1 does not exist"
+    return 1
+  }
+
+  function git_repo_exists {
+    [[ -d .git ]] && return 0
+    err "Git repository does not exist"
+    return 1
+  }
+
+  function confirm {
+    local varname var
+    for var in $(locale -k LC_MESSAGES | head -n-1); do
+      varname=${var%=*}
+      var="${var#*=\"}"
+      var="${var%\"}"
+      declare $varname="$var"
+    done
+    echo -n "${@:-"Are you sure?"} [$yesstr/$nostr] "
+    read
+    [[ "$REPLY" =~ $yesexpr ]]
+  }
+
+
+  function err { echo "${0}[error]: $@" >&2; return 1; }
 
   #
   # Current branch:

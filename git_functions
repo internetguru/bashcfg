@@ -1,15 +1,5 @@
 #!/bin/bash
 
-: ${CHANGELOG:=CHANGELOG}
-: ${VERSION:=VERSION}
-
-# Are all changes committed?
-function git_status_empty {
-  [[ -z "$(git status --porcelain)" ]] && return 0
-  err "Uncommited changes"
-  return 1
-}
-
 function git_diff_inclusive {
   local from to
   oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
@@ -35,14 +25,24 @@ function git_upstream {
   git branch -u "origin/${1:-$(gcb)}"
 }
 
-function git_branch_exists {
-  git rev-parse --verify "$1" 1>/dev/null 2>/dev/null && return 0
-  err "Branch $1 does not exist"
-  return 1
-}
-
-function git_repo_exists {
-  [[ -d .git ]] && return 0
-  err "Git repository does not exist"
-  return 1
-}
+alias gf='git_flow'
+alias gfi='git_flow --init'
+alias gdi='git_diff_inclusive'
+alias gdb='git_delete_branch'
+alias gdt='git_delete_tag'
+alias gls='git_log_since'
+alias gup='git_upstream'
+alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gb='git checkout -b'
+alias gd='git diff'
+alias gc='git commit'
+alias gch='git checkout'
+alias gl="git log --oneline --decorate --color --graph"
+alias gla="gl --all"
+alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
+alias gpush='git push --all; git push --tags'
+alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
+alias gpullhard='git reset --hard && gpull'
+alias guc='git reset --soft HEAD~1' # git uncommit
+alias gs='git status && git submodule status'
+alias gaas='git add -A; gs'

@@ -1,6 +1,6 @@
 TMP = "/tmp"
 MAN_PATH = "$(shell manpath)"
-LIB_PATH = /usr/local/lib
+BIN_PATH = /usr/local/bin
 PANDOC = pandoc
 GIT_FLOW_CMD = "git_flow"
 GIT_FLOW_CMD_PATH = "$(GIT_FLOW_CMD)"
@@ -8,7 +8,6 @@ GIT_FLOW_TAR = "$(GIT_FLOW_CMD).tar.gz"
 MD_FILE = "$(GIT_FLOW_CMD).md"
 MAN_FILE = "$(GIT_FLOW_CMD).1"
 HTML_FILE = "$(GIT_FLOW_CMD).html"
-TO_BIN = globals git_functions $(GIT_FLOW_CMD)
 
 man:
 	@ $(PANDOC) -s -t man $(MD_FILE) -o $(MAN_FILE)
@@ -32,16 +31,14 @@ install:
 	echo "$(MAN_FILE) missing; run \"make man\""; \
 	exit 1; \
 	fi;
-	@ mkdir "$(LIB_PATH)/$(GIT_FLOW_CMD)"
-	@ cp $(TO_BIN) "$(LIB_PATH)/$(GIT_FLOW_CMD)"
-	@ echo "Add $(LIB_PATH)/$(GIT_FLOW_CMD) to your PATH"
+	@ cp $(GIT_FLOW_CMD) "$(BIN_PATH)"
 	@ echo "$(GIT_FLOW_CMD) installed"
 
-uinstall:
+uninstall:
 	@ for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do \
 	if [ -f "$$dir"/man1/$(MAN_FILE) ]; then rm "$$dir"/man1/$(MAN_FILE); fi \
 	done;
-	@ if [ -d $(LIB_PATH)/$(GIT_FLOW_CMD) ]; then rm -rf $(LIB_PATH)/$(GIT_FLOW_CMD); fi
+	@ rm $(BIN_PATH)/$(GIT_FLOW_CMD) || true
 	@ echo "$(GIT_FLOW_CMD) removed"
 
 clean:
