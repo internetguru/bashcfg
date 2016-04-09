@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SCRIPT_NAME="$(basename "$0")"
-source "$(dirname "$0")/../globals"
-source "$(dirname "$0")/../git_functions"
+source "$(dirname "$0")/globals"
+source "$(dirname "$0")/git_functions"
 
 function git_flow {
 
@@ -82,7 +82,7 @@ function git_flow {
 
     local curbranch major minor patch tag master oIFS
 
-    curbranch=$(gcb) || return $?
+    curbranch=$(git rev-parse --abbrev-ref HEAD) || return $?
     git_status_empty || return $?
 
     # read version
@@ -212,7 +212,8 @@ function git_flow {
     git checkout dev
   }
 
-  if init; then
+
+  if $init; then
     _git_flow_init
     return $?
   fi
@@ -220,3 +221,5 @@ function git_flow {
   _git_flow
 
 }
+
+git_flow "$@"
