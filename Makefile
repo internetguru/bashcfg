@@ -8,10 +8,16 @@ GIT_FLOW_TAR = "$(GIT_FLOW_CMD).tar.gz"
 MD_FILE = "$(GIT_FLOW_CMD).md"
 MAN_FILE = "$(GIT_FLOW_CMD).1"
 HTML_FILE = "$(GIT_FLOW_CMD).html"
+HELP_FILE = "$(GIT_FLOW_CMD).help"
 
 man:
 	@ $(PANDOC) -s -t man $(MD_FILE) -o $(MAN_FILE)
 	@ echo "$(MAN_FILE) created"
+
+help:
+	@ sed -n '/# SYNOPSIS/,/# INTRODUCTION/p;/# REFE/,//p' git_flow.md | grep -v "# INTRODUCTION" | sed "s/\*\*//g;s/^:   /       /;s/^[^#]/       \0/;s/^# //;s/\[\(.\+\)(\([0-9]\+\))\](\(.\+\))/(\2) \1\n              \3/;s/,$$/,\n/" > $(HELP_FILE)
+	@ echo -e "\nOTHER\n\n       See man $(GIT_FLOW_CMD) for more information." >> $(HELP_FILE)
+	@ echo "$(HELP_FILE) created"
 
 html:
 	@ $(PANDOC) -t html -s $(MD_FILE) -o $(HTML_FILE)
@@ -44,4 +50,5 @@ uninstall:
 clean:
 	@ rm "$(MAN_FILE)" 2>/dev/null || true
 	@ rm "$(HTML_FILE)" 2>/dev/null || true
+	@ rm "$(HELP_FILE)" 2>/dev/null || true
 	@ rm "$(GIT_FLOW_TAR)" 2>/dev/null || true

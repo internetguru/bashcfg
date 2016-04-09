@@ -4,22 +4,26 @@
 % April 2016
 
 # NAME
+
 git_flow
 
 # SYNOPSIS
+
 git_flow [-ih]
 
 # DESCRIPTION
-**git_flow**  implement **git flow model**(1) workflow and extend **existing git_flow command**(2):
 
-* automatically increment version number (file VERSION)
-* automatically fill version history (file CHANGELOG)
-* support independet production branches
-* even more simple usage
+**git_flow** implements **git flow model**(1) similarly to **git-flow command**(2) with following improvements:
+
+* even simpler usage (with no parameters),
+* automatic version number incrementation (file VERSION),
+* automatic version history update (file CHANGELOG),
+* independent production branches support.
 
 # OPTIONS
+
 -i, --init
-:   Initialize current folder to be compatible with git flow model
+:   Initialize current folder to be compatible with git flow model.
 
 -h, --help
 :   Show (this) usage.
@@ -62,7 +66,7 @@ release-#.#
 #. ``git checkout dev``
 #. ``git checkout -b feature_name``
 #. … some commits …
-#. git_flow
+#. ``git_flow``
 
 ## Hotfix
 
@@ -80,7 +84,7 @@ release-#.#
 
 #. ``git checkout release-#.#``
 #. … fixes followed by commits …
-#. ``git_flow `` (merge only to dv)
+#. ``git_flow `` (merge only to dev)
 
 ## Release to production
 
@@ -88,6 +92,7 @@ release-#.#
 #. ``git_flow``
 
 # REFERENCES
+
 [**git flow model**(1)](http://nvie.com/posts/a-successful-git-branching-model/)
 
 [**git-flow cheatsheet**(2)](http://danielkummer.github.io/git-flow-cheatsheet/)

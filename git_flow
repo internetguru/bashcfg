@@ -1,17 +1,11 @@
 #!/bin/bash
 
-SCRIPT_NAME="$(basename "$0")"
 : ${CHANGELOG:=CHANGELOG}
 : ${VERSION:=VERSION}
 
-function git_flow {
+function main {
 
-  ## defaults and constants
-  local usage line init BWhite NC
-  init=false
-  NC="\e[m"
-
-  ## process options
+  # process options
   if ! line=$(
     getopt -n "$0" \
            -o i,h\? \
@@ -21,47 +15,17 @@ function git_flow {
   then return 1; fi
   eval set -- "$line"
 
-  ## load user options
-  while [ $# -gt 0 ]; do
-    case $1 in
-     -i|--init) init=true; shift ;;
-     -h|-\?|--help) echo -e "$usage" && return 0 ;;
-      --) shift; break ;;
-      *-) echo "$0: Unrecognized option '$1'" >&2; return 1 ;;
-       *) break ;;
-    esac
-  done
+  # defaults and constants
+  local line script_name
+  script_name="git_flow"
 
-  ## usage
-  function colorize {
-    sed "s/--\?[a-zA-Z]\+\|$SCRIPT_NAME\|^[A-Z].\+/\\$BWhite\0\\$NC/g"
+  function highlight_keywords {
+    local bwhite nc
+    nc=$'\e[m'
+    bwhite=$'\e[1;37m'
+    sed "s/\(^\| \)\(--\?[a-zA-Z]\+\|$script_name\|^[A-Z].\+\)/\1\\$bwhite\2\\$nc/g"
   }
 
-  function formatUsage {
-    echo -e "$1" | fmt -w $(tput cols) | colorize
-  }
-
-  usage="$(formatUsage "
-  DESCRIPTION
-         $SCRIPT_NAME automatically create or merge branches according to git flow model mentioned below. Also automatically increment version and help with creating changelog. For more informations see man $SCRIPT_NAME.
-
-  USAGE
-         $SCRIPT_NAME [-ih]
-
-  OPTIONS
-         -i, --init
-                Initialize current folder to be compatible with git flow model
-
-         -h, --help
-                This help (usage).
-
-  SEE
-         Git flow model: http://nvie.com/posts/a-successful-git-branching-model/
-  ")"
-
-  ## functions
-
-  # Are all changes committed?
   function git_status_empty {
     [[ -z "$(git status --porcelain)" ]] && return 0
     err "Uncommited changes"
@@ -81,22 +45,16 @@ function git_flow {
   }
 
   function confirm {
-    local varname var
-    for var in $(locale -k LC_MESSAGES | head -n-1); do
-      varname=${var%=*}
-      var="${var#*=\"}"
-      var="${var%\"}"
-      declare $varname="$var"
-    done
-    echo -n "${@:-"Are you sure?"} [$yesstr/$nostr] "
+    echo -n "${@:-"Are you sure?"} [$(locale yesstr)/$(locale nostr)] "
     read
-    [[ "$REPLY" =~ $yesexpr ]]
+    [[ "$REPLY" =~ $(locale yesexpr) ]]
   }
 
+  function err {
+    echo "${0}[error]: $@" >&2
+    return 1
+  }
 
-  function err { echo "${0}[error]: $@" >&2; return 1; }
-
-  #
   # Current branch:
   #
   #  dev
@@ -119,17 +77,14 @@ function git_flow {
   #   - update version history
   #   - merge dev branch with feature
   #   - prompt to delete branch
-  #
-  function _git_flow {
+  function git_flow {
 
-    git_repo_exists \
-      || err "Use git_flow_init" \
-      || return 1
+    git_repo_exists || return 1
 
     local curbranch major minor patch tag master oIFS
 
-    curbranch=$(git rev-parse --abbrev-ref HEAD) || return $?
-    git_status_empty || return $?
+    curbranch=$(git rev-parse --abbrev-ref HEAD) || return 1
+    git_status_empty || return 1
 
     # read version
     oIFS=$IFS
@@ -152,17 +107,15 @@ function git_flow {
         git checkout -b $branch
         code=$?
         # branch already exists, checkout on it
-        [[ $code == 128 ]] \
-          && git checkout $branch \
-          && return $code
+        [[ $code == 128 ]] && git checkout $branch
         # checkout failed
-        [[ $code != 0 ]] && return $code
+        [[ $code != 0 ]] && return 1
         # update version
         echo ${major}.${minor}.$patch > $VERSION
         # commit changed $VERSION
         [[ $curbranch != dev ]] \
           && git commit -am $branch \
-          && return $?
+          && return 1
         # write header to $CHANGELOG
         header="${major}.${minor} | $(date "+%Y-%m-%d")"
         printf '\n%s\n\n%s\n' "$header" "$(<$CHANGELOG)" > $CHANGELOG
@@ -184,7 +137,7 @@ function git_flow {
         # feature
         if [[ -z "$tag" ]]; then
           local tmpfile
-          git rebase dev || return $?
+          git rebase dev || return 1
           tmpfile="$(mktemp)"
           # prepare message for $CHANGELOG
           {
@@ -203,7 +156,7 @@ function git_flow {
         # merge to dev
         git checkout dev \
           && git merge --no-ff $curbranch \
-          || return $?
+          || return 1
         # not feature, confirm merge branch to master
         [[ -n "$tag" ]] \
           && confirm "Merge branch '$curbranch' into $master?" \
@@ -224,16 +177,14 @@ function git_flow {
     esac
   }
 
-  #
   # Prepare enviroment for git_flow:
   # - create $VERSION and $CHANGELOG file
   # - create dev branch (from master)
-  #
-  function _git_flow_init {
+  function git_flow_init {
     local commit checkout_master=true
     # init git repo
     git_repo_exists 2>/dev/null || { git init; checkout_master=false; }
-    git_status_empty || return $?
+    git_status_empty || return 1
     commit=false
     # checkout to master if it isn't new pository
     $checkout_master \
@@ -258,14 +209,18 @@ function git_flow {
     git checkout dev
   }
 
-
-  if $init; then
-    _git_flow_init
-    return $?
-  fi
-
-  _git_flow
+  # load user options
+  while [ $# -gt 0 ]; do
+    case $1 in
+     -i|--init) git_flow_init; return $? ;;
+     -h|-\?|--help) cat ${script_name}.help | fmt -w $(tput cols) | highlight_keywords && return 0 ;;
+      --) shift; break ;;
+      *-) echo "$0: Unrecognized option '$1'" >&2; return 1 ;;
+       *) break ;;
+    esac
+  done
+  git_flow
 
 }
 
-git_flow "$@"
+main "$@"
