@@ -1,3 +1,4 @@
+oddělení git_flow do samostatného repozitáře https://bitbucket.org/igwr/gf
 podpora "svaté trojice" ./configure && make && make install
 git_flow: změna způsobu zápisu do souboru CHANGELOG
 
