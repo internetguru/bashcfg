@@ -10,20 +10,20 @@ git_flow
 git_flow [\-ih]
 .SH DESCRIPTION
 .PP
-\f[B]git_flow\f[] implement \f[B]git flow model\f[](1) workflow and
-extend \f[B]existing git_flow command\f[](2):
+\f[B]git_flow\f[] implements \f[B]git flow model\f[](1) similarly to
+\f[B]git\-flow command\f[](2) with following improvements:
 .IP \[bu] 2
-automatically increment version number (file VERSION)
+even simpler usage (with no parameters),
 .IP \[bu] 2
-automatically fill version history (file CHANGELOG)
+automatic version number incrementation (file VERSION),
 .IP \[bu] 2
-support independet production branches
+automatic version history update (file CHANGELOG),
 .IP \[bu] 2
-even more simple usage
+independent production branches support.
 .SH OPTIONS
 .TP
 .B \-i, \-\-init
-Initialize current folder to be compatible with git flow model
+Initialize current folder to be compatible with git flow model.
 .RS
 .RE
 .TP
@@ -92,7 +92,7 @@ for automatic creation run \f[C]git_flow\f[] on branch \f[I]dev\f[]
 .IP "3." 3
 \&... some commits \&...
 .IP "4." 3
-git_flow
+\f[C]git_flow\f[]
 .SS Hotfix
 .IP "1." 3
 \f[C]git\ checkout\ master\f[]
@@ -113,7 +113,7 @@ git_flow
 .IP "2." 3
 \&... fixes followed by commits \&...
 .IP "3." 3
-\f[C]git_flow\f[] (merge only to dv)
+\f[C]git_flow\f[] (merge only to dev)
 .SS Release to production
 .IP "1." 3
 \f[C]git\ checkout\ release\-#.#\f[]

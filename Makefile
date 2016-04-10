@@ -1,54 +1,46 @@
-TMP = "/tmp"
 MAN_PATH = "$(shell manpath)"
 BIN_PATH = /usr/local/bin
 PANDOC = pandoc
-GIT_FLOW_CMD = "git_flow"
-GIT_FLOW_CMD_PATH = "$(GIT_FLOW_CMD)"
-GIT_FLOW_TAR = "$(GIT_FLOW_CMD).tar.gz"
-MD_FILE = "$(GIT_FLOW_CMD).md"
-MAN_FILE = "$(GIT_FLOW_CMD).1"
-HTML_FILE = "$(GIT_FLOW_CMD).html"
-HELP_FILE = "$(GIT_FLOW_CMD).help"
+GF = "git_flow"
+SHARE_PATH = "/usr/share/$(GF)"
+MD_FILE = "$(GF).md"
+MAN_FILE = "$(GF).1"
+HELP_FILE = "$(GF).help"
 
-man:
+default:
+	@ echo -n "Creating man file $(MAN_FILE) ..."
 	@ $(PANDOC) -s -t man $(MD_FILE) -o $(MAN_FILE)
-	@ echo "$(MAN_FILE) created"
-
-help:
-	@ sed -n '/# SYNOPSIS/,/# INTRODUCTION/p;/# REFE/,//p' git_flow.md | grep -v "# INTRODUCTION" | sed "s/\*\*//g;s/^:   /       /;s/^[^#]/       \0/;s/^# //;s/\[\(.\+\)(\([0-9]\+\))\](\(.\+\))/(\2) \1\n              \3/;s/,$$/,\n/" > $(HELP_FILE)
-	@ echo -e "\nOTHER\n\n       See man $(GIT_FLOW_CMD) for more information." >> $(HELP_FILE)
-	@ echo "$(HELP_FILE) created"
-
-html:
-	@ $(PANDOC) -t html -s $(MD_FILE) -o $(HTML_FILE)
-	@ echo "$(HTML_FILE) created"
-
-dist: clean
-	@ tar czf "$(TMP)/$(GIT_FLOW_TAR)" .
-	@ mv "$(TMP)/$(GIT_FLOW_TAR)" .
-	@ echo "$(GIT_FLOW_TAR) created"
+	@ echo DONE
+	@ echo -n "Creating help file $(HELP_FILE) ..."
+	@ sed -n '/# SYNOPSIS/,/# INTRODUCTION/p;/# REFE/,//p' $(MD_FILE) | grep -v "# INTRODUCTION" \
+	| sed "s/\*\*//g;s/^:   /       /;s/^[^#]/       \0/;s/^# //;s/\[\(.\+\)(\([0-9]\+\))\](\(.\+\))/(\2) \1\n              \3/;s/,$$/,\n/" > $(HELP_FILE)
+	@ echo -e "\nOTHER\n\n       See man $(GF) for more information." >> $(HELP_FILE)
+	@ echo DONE
 
 install:
-	@ if [ -f $(MAN_FILE) ]; then \
-	for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do \
-	cp $(MAN_FILE) "$$dir"/man1; \
-	done; \
-	else \
-	echo "$(MAN_FILE) missing; run \"make man\""; \
-	exit 1; \
-	fi;
-	@ cp $(GIT_FLOW_CMD) "$(BIN_PATH)"
-	@ echo "$(GIT_FLOW_CMD) installed"
+	@ [ -f $(MAN_FILE) ] && [ -f $(HELP_FILE) ] \
+	|| { echo "Expected files not found; run 'make' first."; exit 1; }
+	@ echo -n "Install man page ..."
+	@ for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do cp $(MAN_FILE) "$$dir"/man1; done
+	@ echo DONE
+	@ echo -n "Register command ..."
+	@ cp $(GF) "$(BIN_PATH)"
+	@ echo DONE
+	@ echo -n "Share help file ..."
+	@ [ -d $(SHARE_PATH) ] || mkdir $(SHARE_PATH)
+	@ cp $(HELP_FILE) $(SHARE_PATH)
+	@ echo DONE
 
 uninstall:
+	@ echo -n "Uninstalling $(GF) ..."
 	@ for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do \
-	if [ -f "$$dir"/man1/$(MAN_FILE) ]; then rm "$$dir"/man1/$(MAN_FILE); fi \
+	[ -f "$$dir"/man1/$(MAN_FILE) ] && rm "$$dir"/man1/$(MAN_FILE)
 	done;
-	@ rm $(BIN_PATH)/$(GIT_FLOW_CMD) || true
-	@ echo "$(GIT_FLOW_CMD) removed"
+	@ rm $(BIN_PATH)/$(GF) || true
+	@ echo DONE
 
 clean:
+	@ echo -n "Remove compiled files ..."
 	@ rm "$(MAN_FILE)" 2>/dev/null || true
-	@ rm "$(HTML_FILE)" 2>/dev/null || true
 	@ rm "$(HELP_FILE)" 2>/dev/null || true
-	@ rm "$(GIT_FLOW_TAR)" 2>/dev/null || true
+	@ echo DONE
