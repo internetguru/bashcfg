@@ -25,8 +25,7 @@ function git_upstream {
   git branch -u "origin/${1:-$(gcb)}"
 }
 
-alias gf='git_flow'
-alias gfi='git_flow --init'
+alias gfi='gf --init'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
