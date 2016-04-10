@@ -19,13 +19,6 @@ function main {
   local line script_name
   script_name="git_flow"
 
-  function highlight_keywords {
-    local bwhite nc
-    nc=$'\e[m'
-    bwhite=$'\e[1;37m'
-    sed "s/\(^\| \)\(--\?[a-zA-Z]\+\|$script_name\|^[A-Z].\+\)/\1\\$bwhite\2\\$nc/g"
-  }
-
   function git_status_empty {
     [[ -z "$(git status --porcelain)" ]] && return 0
     err "Uncommited changes"
@@ -209,11 +202,21 @@ function main {
     git checkout dev
   }
 
+  function git_flow_help {
+    local help_file bwhite nc
+    nc=$'\e[m'
+    bwhite=$'\e[1;37m'
+    help_file="/usr/local/share/$script_name/${script_name}.help"
+    [ -f $help_file ] || err "Help file not found" || return 1
+    cat $help_file | fmt -w $(tput cols) \
+    | sed "s/\(^\| \)\(--\?[a-zA-Z]\+\|$script_name\|^[A-Z].\+\)/\1\\$bwhite\2\\$nc/g"
+  }
+
   # load user options
   while [ $# -gt 0 ]; do
     case $1 in
      -i|--init) git_flow_init; return $? ;;
-     -h|-\?|--help) cat ${script_name}.help | fmt -w $(tput cols) | highlight_keywords && return 0 ;;
+     -h|-\?|--help) git_flow_help; return $? ;;
       --) shift; break ;;
       *-) echo "$0: Unrecognized option '$1'" >&2; return 1 ;;
        *) break ;;

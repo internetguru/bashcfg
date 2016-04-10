@@ -20,7 +20,7 @@ MAN_FILE    := $(GF).1
 HELP_FILE   := $(GF).help
 DESTPATH    := $(DESTDIR)$(PREFIX)
 BINPATH     := $(DESTPATH)/bin
-DATAPATH    := $(DESTPATH)/share
+DATAPATH    := $(DESTPATH)/share/$(GF)
 MANPATH     := $(DATAPATH)/man/man1
 
 #-------------------------------------------------------------------------------
@@ -28,10 +28,10 @@ MANPATH     := $(DATAPATH)/man/man1
 #-------------------------------------------------------------------------------
 
 default:
-	@ echo -n "Creating man file $(MAN_FILE) ..."
+	@ echo -n "Creating man file ..."
 	@ $(PANDOC) -s -t man $(MD_FILE) -o $(MAN_FILE)
 	@ echo DONE
-	@ echo -n "Creating help file $(HELP_FILE) ..."
+	@ echo -n "Creating help file ..."
 	@ sed -n '/# SYNOPSIS/,/# INTRODUCTION/p;/# REFE/,//p' $(MD_FILE) | grep -v "# INTRODUCTION" \
 	| sed "s/\*\*//g;s/^:   /       /;s/^[^#]/       \0/;s/^# //;s/\[\(.\+\)(\([0-9]\+\))\](\(.\+\))/(\2) \1\n              \3/;s/,$$/,\n/" > $(HELP_FILE)
 	@ echo -e "\nOTHER\n\n       See man $(GF) for more information." >> $(HELP_FILE)
