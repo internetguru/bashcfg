@@ -1,11 +1,31 @@
-MAN_PATH = "$(shell manpath)"
-BIN_PATH = /usr/local/bin
-PANDOC = pandoc
-GF = "git_flow"
-SHARE_PATH = "/usr/share/$(GF)"
-MD_FILE = "$(GF).md"
-MAN_FILE = "$(GF).1"
-HELP_FILE = "$(GF).help"
+#-------------------------------------------------------------------------------
+# Variables to setup through environment
+#-------------------------------------------------------------------------------
+
+# Specify default values.
+prefix    := /usr/local
+destdir   :=
+# Fallback to defaults but allow to get the values from environment.
+PREFIX    ?= $(prefix)
+DESTDIR   ?= $(destdir)
+
+#-------------------------------------------------------------------------------
+# Installation paths
+#-------------------------------------------------------------------------------
+
+PANDOC      := pandoc
+GF          := git_flow
+MD_FILE     := $(GF).md
+MAN_FILE    := $(GF).1
+HELP_FILE   := $(GF).help
+DESTPATH    := $(DESTDIR)$(PREFIX)
+BINPATH     := $(DESTPATH)/bin
+DATAPATH    := $(DESTPATH)/share
+MANPATH     := $(DATAPATH)/man/man1
+
+#-------------------------------------------------------------------------------
+# Recipes
+#-------------------------------------------------------------------------------
 
 default:
 	@ echo -n "Creating man file $(MAN_FILE) ..."
@@ -21,22 +41,26 @@ install:
 	@ [ -f $(MAN_FILE) ] && [ -f $(HELP_FILE) ] \
 	|| { echo "Expected files not found; run 'make' first."; exit 1; }
 	@ echo -n "Install man page ..."
-	@ for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do cp $(MAN_FILE) "$$dir"/man1; done
+	@ [ -d $(MANPATH) ] || mkdir -p $(MANPATH)
+	@ cp $(MAN_FILE) $(MANPATH)
 	@ echo DONE
 	@ echo -n "Register command ..."
-	@ cp $(GF) "$(BIN_PATH)"
+	@ cp $(GF) "$(BINPATH)"
 	@ echo DONE
-	@ echo -n "Share help file ..."
-	@ [ -d $(SHARE_PATH) ] || mkdir $(SHARE_PATH)
-	@ cp $(HELP_FILE) $(SHARE_PATH)
+	@ echo -n "Create shared folder ..."
+	@ [ -d $(DATAPATH) ] || mkdir -p $(DATAPATH)
+	@ cp $(HELP_FILE) $(DATAPATH)
 	@ echo DONE
 
 uninstall:
-	@ echo -n "Uninstalling $(GF) ..."
-	@ for dir in $(shell echo $(MAN_PATH) | tr ":" "\n"); do \
-	[ -f "$$dir"/man1/$(MAN_FILE) ] && rm "$$dir"/man1/$(MAN_FILE)
-	done;
-	@ rm $(BIN_PATH)/$(GF) || true
+	@ echo -n "Remove man page ..."
+	@ rm $(MANPATH)/$(MAN_FILE) 2>/dev/null || true
+	@ echo DONE
+	@ echo -n "Remove command ..."
+	@ rm $(BINPATH)/$(GF) 2>/dev/null || true
+	@ echo DONE
+	@ echo -n "Remove shared folder ..."
+	@ rm -rf $(DATAPATH) 2>/dev/null || true
 	@ echo DONE
 
 clean:
