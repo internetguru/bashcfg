@@ -34,13 +34,6 @@ NC="\e[m"
 [ -z "$SU" ] && SU=$BCyan
 [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 
-function confirm {
-  QUESTION="${1:-"Are you sure?"}"
-  sh -c 'read -p "$0 [y/n] " -n 1 -r && echo && \
-  [[ $REPLY =~ [YyAaZz] ]] || exit 1' "$QUESTION"
-  return $?
-}
-
 alias .='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'

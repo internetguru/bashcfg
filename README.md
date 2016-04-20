@@ -17,7 +17,7 @@ This README would normally document whatever steps are necessary to get your app
 
 echo "IG bashcfg, version $(< $HOME/"bashcfg/VERSION")"
 source "$HOME/bashcfg/common"
-source "$HOME/bashcfg/git"
+source "$HOME/bashcfg/git_functions"
 PS1="$MYPS1"
 
 ```

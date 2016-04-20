@@ -1,4 +1,17 @@
 
+0.6 | 2016-04-20
+
+oddělení git_flow do samostatného repozitáře https://bitbucket.org/igwr/gf
+podpora "svaté trojice" ./configure && make && make install
+git_flow: změna způsobu zápisu do souboru CHANGELOG
+
+0.5 | 2016-04-01
+
+git_flow: přidána kontrola na exitenci gitu
+git: přidána funkce/alias git_flow_init/gfi
+git: přidána funkce git_repo_exist
+git: přidána funkce git_branch_exist
+
 0.4 | 2016-03-22
 
 git_flow: přidáno +++ před/za commity v souboru CHANGELOG
