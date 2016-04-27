@@ -34,6 +34,10 @@ NC="\e[m"
 [ -z "$SU" ] && SU=$BCyan
 [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 
+function take {
+  mkdir -p "$1" && cd "$1"
+}
+
 alias .='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
