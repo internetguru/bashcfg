@@ -43,5 +43,5 @@ alias gpush='git push --all; git push --tags'
 alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
 alias gpullhard='git reset --hard && gpull'
 alias guc='git reset --soft HEAD~1' # git uncommit
-alias gs='git status && git submodule status'
+alias gs='git status'
 alias gaas='git add -A; gs'
