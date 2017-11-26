@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+### Added
+ - docker_up and docker_down functions
+
 ### Changed
  - CHANGELOG format change to .md
  - split ll to ll (long listing) and la (long listing all)
@@ -46,3 +49,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
  - git: refaktor gm a gvi na git_flow
  - .bashrc: rozdělení do samostatných souborů
+[Unreleased]: https://bitbucket.org/igwr/bashcfg/compare/dev..master

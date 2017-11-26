@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function docker_up {
+  pushd ~/docker-cms
+  docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+  popd
+}
+
+function docker_down {
+  pushd ~/docker-cms
+  docker-compose -f docker-compose.yml -f docker-compose.local.yml down
+  popd
+}
+
 # Normal Colors
 Black='\e[0;30m'        # Black
 Red='\e[0;31m'          # Red
@@ -48,3 +60,4 @@ alias less='less -rSX'
 alias cpr='cp -pr' # copy dir, preserve mode, ownership, timestamps
 alias phplint='find . -name "*.php" -type f -exec php -l "{}" \;'
 alias wchtml='wc -w *.html | awk '\''{ print $1-80"\t"$2 }'\'' | sort -k 1n'
+alias alfa='cd ~/var/www/cms/alfa'
