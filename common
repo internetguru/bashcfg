@@ -50,6 +50,18 @@ function take {
   mkdir -p "$1" && cd "$1"
 }
 
+function jcar {
+  [ -z $1 ] && 1="Main"
+  javac ${1%.*}.java && java ${1%.*}
+}
+
+function jbcar {
+  [ -z $1 ] && 1="Main"
+  [ ! -f ${1%.*}.java ] && echo "File ${1%.*}.java not found." && return 1
+  [ ! -d "../bin" ] && mkdir "../bin"
+  javac -d "../bin" "${1%.*}.java" && java -classpath "../bin/" ${1%.*}
+}
+
 alias .='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
