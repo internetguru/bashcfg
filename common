@@ -1,12 +1,12 @@
 #!/bin/bash
 
-function docker_up {
+docker_up() {
   pushd ~/docker-cms
   docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
   popd
 }
 
-function docker_down {
+docker_down() {
   pushd ~/docker-cms
   docker-compose -f docker-compose.yml -f docker-compose.local.yml down
   popd
@@ -46,20 +46,24 @@ NC="\e[m"
 [ -z "$SU" ] && SU=$BCyan
 [ -z "$MYPS1" ] && MYPS1="\[$SU\]\u\[$NC\]@\h:\[$BWhite\]\w\[$NC\]\\$ \[\e]0;\u@\h:\w\a\]"
 
-function take {
+take() {
   mkdir -p "$1" && cd "$1"
 }
 
-function jcar {
+jcar() {
   [ -z $1 ] && 1="Main"
   javac ${1%.*}.java && java ${1%.*}
 }
 
-function jbcar {
+jbcar() {
   [ -z $1 ] && 1="Main"
   [ ! -f ${1%.*}.java ] && echo "File ${1%.*}.java not found." && return 1
   [ ! -d "../bin" ] && mkdir "../bin"
   javac -d "../bin" "${1%.*}.java" && java -classpath "../bin/" ${1%.*}
+}
+
+sublime_text_bg() {
+  sublime_text "$@" &
 }
 
 alias .='cd ~'
@@ -73,3 +77,5 @@ alias cpr='cp -pr' # copy dir, preserve mode, ownership, timestamps
 alias phplint='find . -name "*.php" -type f -exec php -l "{}" \;'
 alias wchtml='wc -w *.html | awk '\''{ print $1-80"\t"$2 }'\'' | sort -k 1n'
 alias alfa='cd ~/var/www/cms/alfa'
+alias s='sublime_text_bg'
+
