@@ -1,35 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env fish
 
-git_diff_inclusive() {
-  local from to
-  oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
-  [[ -z $to ]] && to=$from
-  git diff $from~1..$to $2
-}
+function default
+  for val in $argv
+    if test "$val" != ""
+      echo $val
+      break
+    end
+  end
+end
 
-git_delete_branch() {
-  git branch -d $1
-  git push origin :refs/heads/$1
-}
+function git_diff_inclusive
+  set rev (default "$argv[1]" "HEAD")
+  git diff $rev~1..$rev $argv[2]
+end
 
-git_delete_tag() {
-  git tag -d $1
-  git push origin :refs/tags/$1
-}
+function git_delete_branch
+  git branch -d $argv[1]
+  git push origin :refs/heads/$argv[1]
+end
 
-git_log_since() {
-  git log --decorate --oneline ${1:+$1~1..}
-}
+function git_delete_tag
+  git tag -d $argv[1]
+  git push origin :refs/tags/$argv[1]
+end
 
-git_upstream() {
-  git branch -u "origin/${1:-$(gcb)}"
-}
+function git_upstream
+  set rev (default "$argv[1]" (gcb))
+  git branch -u "origin/$rev"
+end
 
-alias gfi='gf --init'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
-alias gls='git_log_since'
 alias gup='git_upstream'
 alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
 alias gb='git checkout -b'
