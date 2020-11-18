@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 function take
-  mkdir -p "$1" && cd "$1"
+  mkdir -p "$argv[1]" && cd "$argv[1]"
 end
 
 function jcar
