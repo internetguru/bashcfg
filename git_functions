@@ -27,20 +27,20 @@ git_upstream() {
 
 gpull() {
   git pull --tags \
-    || exit 1
+    || return 1
   while read -r line; do
     branch="$(basename "$line")"
     current_branch="$(git rev-parse --abbrev-ref HEAD)"
     if [[ "$branch" == "$current_branch" ]]; then
       git pull \
-        || exit 1
+        || return 1
     else
       git fetch origin "$branch:$branch" \
-        || exit 1
+        || return 1
     fi
   done < <(git ls-remote -h --refs origin)
   git submodule update --init --recursive \
-    || exit 1
+    || return 1
 }
 
 alias gfi='gf --init'

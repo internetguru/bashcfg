@@ -29,6 +29,24 @@ function git_upstream
   git branch -u "origin/$rev"
 end
 
+function gpull
+  git pull --tags \
+    || return 1
+  git ls-remote -h --refs origin | while read line
+    set branch (basename "$line")
+    set current_branch (git rev-parse --abbrev-ref HEAD)
+    if test "$branch" = "$current_branch"
+      git pull \
+        || return 1
+    else
+      git fetch origin "$branch:$branch" \
+        || return 1
+    end
+  end
+  git submodule update --init --recursive \
+    || return 1
+end
+
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
@@ -42,7 +60,6 @@ alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
 alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
-alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
 alias gpullhard='git reset --hard && gpull'
 alias guc='git reset --soft HEAD~1' # git uncommit
 alias gs='git status'
