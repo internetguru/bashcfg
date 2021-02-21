@@ -32,6 +32,7 @@ end
 function gpull
   git pull --tags \
     || return 1
+  git remote update origin --prune
   git ls-remote -h --refs origin | while read line
     set branch (basename "$line")
     set current_branch (git rev-parse --abbrev-ref HEAD)
