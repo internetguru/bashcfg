@@ -33,6 +33,8 @@ gpull() {
     branch="$(basename "$line")"
     current_branch="$(git rev-parse --abbrev-ref HEAD)"
     if [[ "$branch" == "$current_branch" ]]; then
+      git_upstream 2>/dev/null \
+        || continue
       git pull \
         || return 1
     else
