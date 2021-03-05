@@ -1,5 +1,9 @@
 #!/bin/bash
 
+git_current_branch() {
+  git branch | grep '\*' | tr -d '* '
+}
+
 git_diff_inclusive() {
   local from to
   oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
@@ -22,28 +26,41 @@ git_log_since() {
 }
 
 git_upstream() {
-  git branch -u "origin/${1:-$(gcb)}"
+  declare -r local="${1:-$(git_current_branch)}"
+  declare -r remote="${2:-origin/${local}}"
+  git branch | grep --quiet " ${local}$" \
+    && git branch --set-upstream-to="${remote}" "${local}" \
+    && return $?
+  git branch --track "${local}" "${remote}"
 }
 
-gpull() {
-  git pull --tags \
-    || return 1
-  git remote update origin --prune
-  while read -r line; do
-    branch="$(basename "$line")"
-    current_branch="$(git rev-parse --abbrev-ref HEAD)"
-    if [[ "$branch" == "$current_branch" ]]; then
-      git_upstream 2>/dev/null \
-        || continue
-      git pull \
-        || return 1
-    else
-      git fetch origin "$branch:$branch" \
-        || return 1
-    fi
-  done < <(git ls-remote -h --refs origin)
-  git submodule update --init --recursive \
-    || return 1
+git_synchronize() {
+    # sync tags
+    echo '=== sync tags ==='
+    git fetch --tags --all
+    # sync remote branches
+    echo '=== get branches ==='
+    git remote update origin --prune
+    # set local branch & upstream for each remote branch
+    echo '=== upstream and update ==='
+    git branch --remotes | grep --invert-match '\->' | while read -r remote; do
+      declare local="${remote#origin/}"
+      git_upstream "${local}" "${remote}"
+      [[ "${local}" == "$(git_current_branch)" ]] \
+        && git pull \
+        && continue
+      git fetch origin "${local}:${local}"
+    done
+    # remove local merged branches without a corresponding remote
+    echo '=== remove merged ==='
+    git branch --merged | while read -r local; do
+      git branch --remotes | grep --quiet " origin/${local#* }$" \
+        && continue
+      git branch --delete --force "${local#* }"
+    done
+    # update submodules
+    echo '=== update submodules ==='
+    git submodule update --init --recursive
 }
 
 alias gfi='gf --init'
@@ -52,7 +69,7 @@ alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
 alias gls='git_log_since'
 alias gup='git_upstream'
-alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gcb='git_current_branch'
 alias gb='git checkout -b'
 alias gd='git diff'
 alias gc='git commit'
@@ -61,6 +78,7 @@ alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
 alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
+alias gsync='git_synchronize'
 alias gpullhard='git reset --hard && gpull'
 alias guc='git reset --soft HEAD~1' # git uncommit
 alias gs='git status'

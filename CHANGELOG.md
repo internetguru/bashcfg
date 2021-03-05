@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
- - Fish shell support
+ - gsync to sync all
+
+### Changed
+ - improved gup
+
+### Removed
+ - gpull
 
 ## [0.7.0] - 2017-11-26
 ### Added
