@@ -7,7 +7,7 @@
 - Clone this repository
 
     ```bash
-    git clone https://github.com/InternetGuru/bashcfg.git
+    git clone https://github.com/InternetGuru/bashcfg.git $HOME
     ```
 
 - Add the following lines into your `.bashrc` file
