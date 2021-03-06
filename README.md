@@ -4,11 +4,16 @@
 
 ### Usage
 
-* Add the following lines into your `.bashrc` file
+- Clone this repository
 
-```
-echo "IG bashcfg, version $(< $HOME/"bashcfg/VERSION")"
-source "$HOME/bashcfg/common"
-source "$HOME/bashcfg/git_functions"
+    ```bash
+    git clone https://github.com/InternetGuru/bashcfg.git
+    ```
 
-```
+- Add the following lines into your `.bashrc` file
+
+    ```bash
+    echo "IG bashcfg, version $(< $HOME/"bashcfg/VERSION")"
+    source "$HOME/bashcfg/common"
+    source "$HOME/bashcfg/git_functions"
+    ```
