@@ -1,6 +1,6 @@
 # Bash config
 
-> Functions and aliases to support using Git Flow model.
+> Usefull set of functions and aliases.
 
 ### Usage
 
