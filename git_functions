@@ -3,28 +3,29 @@
 git_current_branch() {
   git branch | grep '\*' | tr -d '* '
 }
-
 git_diff_inclusive() {
-  local from to
-  oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
-  [[ -z $to ]] && to=$from
-  git diff $from~1..$to $2
+  declare from
+  declare to
+  declare oIFS="${IFS}"
+  IFS='.'
+  # shellcheck disable=SC2034
+  read -r from junk to <<< "${1:-HEAD}"
+  IFS="${oIFS}"
+  [[ -z "${to}" ]] \
+    && to="${from}"
+  git diff "${from}~1..${to}" "${2}"
 }
-
 git_delete_branch() {
-  git branch -d $1
-  git push origin :refs/heads/$1
+  git branch -d "${1}"
+  git push origin :refs/heads/"${1}"
 }
-
 git_delete_tag() {
-  git tag -d $1
-  git push origin :refs/tags/$1
+  git tag -d "${1}"
+  git push origin :refs/tags/"${1}"
 }
-
 git_log_since() {
-  git log --decorate --oneline ${1:+$1~1..}
+  git log --decorate --oneline "${1:+${1}~1..}"
 }
-
 git_upstream() {
   declare -r local="${1:-$(git_current_branch)}"
   declare -r remote="${2:-origin/${local}}"
@@ -33,7 +34,6 @@ git_upstream() {
     && return $?
   git branch --track "${local}" "${remote}"
 }
-
 git_synchronize() {
     # sync tags
     echo '=== sync tags ==='
@@ -79,7 +79,6 @@ alias gla="gl --all"
 alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
 alias gsync='git_synchronize'
-alias gpullhard='git reset --hard && gpull'
-alias guc='git reset --soft HEAD~1' # git uncommit
+alias guc='git reset --soft HEAD~1'
 alias gs='git status'
 alias gaas='git add -A; gs'
