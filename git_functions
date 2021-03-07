@@ -1,28 +1,66 @@
 #!/bin/bash
 
-function git_diff_inclusive {
-  local from to
-  oIFS=$IFS; IFS=.; read from junk to <<< ${1:-HEAD}; IFS=$oIFS
-  [[ -z $to ]] && to=$from
-  git diff $from~1..$to $2
+git_current_branch() {
+  git branch | grep '\*' | tr -d '* '
 }
-
-function git_delete_branch {
-  git branch -d $1
-  git push origin :refs/heads/$1
+git_diff_inclusive() {
+  declare from
+  declare to
+  declare oIFS="${IFS}"
+  IFS='.'
+  # shellcheck disable=SC2034
+  read -r from junk to <<< "${1:-HEAD}"
+  IFS="${oIFS}"
+  [[ -z "${to}" ]] \
+    && to="${from}"
+  git diff "${from}~1..${to}" "${2}"
 }
-
-function git_delete_tag {
-  git tag -d $1
-  git push origin :refs/tags/$1
+git_delete_branch() {
+  git branch -d "${1}"
+  git push origin :refs/heads/"${1}"
 }
-
-function git_log_since {
-  git log --decorate --oneline ${1:+$1~1..}
+git_delete_tag() {
+  git tag -d "${1}"
+  git push origin :refs/tags/"${1}"
 }
-
-function git_upstream {
-  git branch -u "origin/${1:-$(gcb)}"
+git_log_since() {
+  git log --decorate --oneline "${1:+${1}~1..}"
+}
+git_upstream() {
+  declare -r local="${1:-$(git_current_branch)}"
+  declare -r remote="${2:-origin/${local}}"
+  git branch | grep --quiet " ${local}$" \
+    && git branch --set-upstream-to="${remote}" "${local}" \
+    && return $?
+  git branch --track "${local}" "${remote}"
+}
+git_synchronize() {
+    # sync tags
+    echo '=== sync tags ==='
+    git fetch --tags --all
+    # sync remote branches
+    echo '=== get branches ==='
+    git remote update origin --prune
+    # set local branch & upstream for each remote branch
+    echo '=== upstream and update ==='
+    git branch --remotes | grep --invert-match '\->' | while read -r remote; do
+      declare local="${remote#origin/}"
+      git_upstream "${local}" "${remote}"
+      [[ "${local}" == "$(git_current_branch)" ]] \
+        && git pull \
+        && continue
+      git fetch origin "${local}:${local}"
+    done
+    # remove local merged branches without a corresponding remote
+    echo '=== remove merged ==='
+    git branch --merged | while read -r local; do
+      git branch --remotes | grep --quiet " origin/${local#* }$" \
+        && continue
+      git branch --delete --force "${local#* }"
+    done
+    # update submodules
+    echo '=== update submodules ==='
+    git submodule update --init --recursive
 }
 
 alias gfi='gf --init'
@@ -31,7 +69,7 @@ alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
 alias gls='git_log_since'
 alias gup='git_upstream'
-alias gcb='git rev-parse --abbrev-ref HEAD' # git current branch
+alias gcb='git_current_branch'
 alias gb='git checkout -b'
 alias gd='git diff'
 alias gc='git commit'
@@ -40,8 +78,7 @@ alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
 alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
-alias gpull='git pull --all --tags; git fetch -p; git submodule update --init --recursive'
-alias gpullhard='git reset --hard && gpull'
-alias guc='git reset --soft HEAD~1' # git uncommit
-alias gs='git status && git submodule status'
+alias gsync='git_synchronize'
+alias guc='git reset --soft HEAD~1'
+alias gs='git status'
 alias gaas='git add -A; gs'
