@@ -4,16 +4,7 @@ git_current_branch() {
   git branch | grep '\*' | tr -d '* '
 }
 git_diff_inclusive() {
-  declare from
-  declare to
-  declare oIFS="${IFS}"
-  IFS='.'
-  # shellcheck disable=SC2034
-  read -r from junk to <<< "${1:-HEAD}"
-  IFS="${oIFS}"
-  [[ -z "${to}" ]] \
-    && to="${from}"
-  git diff "${from}~1..${to}" "${2}"
+  git diff "HEAD~1..HEAD"
 }
 git_delete_branch() {
   git branch -d "${1}"
@@ -64,7 +55,7 @@ git_synchronize() {
 }
 
 alias gfi='gf --init'
-alias gdi='git_diff_inclusive'
+alias gdi='git_diff_inclusive HEAD'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
 alias gls='git_log_since'
