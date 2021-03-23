@@ -52,6 +52,10 @@ git_synchronize() {
     # update submodules
     echo '=== update submodules ==='
     git submodule update --init --recursive
+    # git push
+    echo '=== push all branches and tags ==='
+    git push --all
+    git push --tags
 }
 
 alias gfi='gf --init'
