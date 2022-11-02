@@ -2,8 +2,7 @@
 
 take() {
   mkdir -p "${1}" \
-    && cd "${1}" \
-    || exit 1
+    && cd "${1}"
 }
 jcar() {
   declare class="${1:-Main}"
