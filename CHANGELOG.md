@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.0] - 2022-11-02
+
 ## [0.8.0] - 2021-03-07
 ### Added
  - gsync to sync all
@@ -60,5 +62,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  - git: refaktor gm a gvi na git_flow
  - .bashrc: rozdělení do samostatných souborů
 
+[0.9.0]: https://github.com/internetguru/bashcfg/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/InternetGuru/bashcfg/compare/v0.7.0...v0.8.0
 [0.7.0]: https://bitbucket.org/igwr/bashcfg/compare/v0.7.0..0.6.0
