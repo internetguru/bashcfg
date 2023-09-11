@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2023-09-11
+
+_Stable release based on [0.11.0-rc.1]._
+
 ## [0.11.0-rc.1] - 2023-09-11
 
 ## [0.10.0] - 2023-09-11
@@ -75,6 +79,7 @@ _Stable release based on [0.10.0-rc.2]._
  - .bashrc: rozdělení do samostatných souborů
 
 [Unreleased]: https://https://github.com/internetguru/bashcfg/compare/staging...dev
+[0.11.0]: https://https://github.com/internetguru/bashcfg/compare/v0.10.0...v0.11.0
 [0.11.0-rc.1]: https://github.com/internetguru/bashcfg/releases/tag/v0.10.0
 [0.10.0]: https://https://github.com/internetguru/bashcfg/compare/v0.9.0...v0.10.0
 [0.10.0-rc.2]: https://github.com/internetguru/bashcfg/releases/tag/v0.9.0
