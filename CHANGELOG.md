@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.10.0] - 2023-09-11
+
+_Stable release based on [0.10.0-rc.2]._
+
 ## [0.10.0-rc.2] - 2023-09-11
 
 ## [0.10.0-rc.1] - 2023-09-11
@@ -66,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  - git: refaktor gm a gvi na git_flow
  - .bashrc: rozdělení do samostatných souborů
 
+[0.10.0]: https://https://github.com/internetguru/bashcfg/compare/v0.9.0...v0.10.0
 [0.10.0-rc.2]: https://github.com/internetguru/bashcfg/releases/tag/v0.9.0
 [0.10.0-rc.1]: https://github.com/internetguru/bashcfg/releases/tag/v0.9.0
 [0.9.0]: https://github.com/internetguru/bashcfg/compare/v0.8.0...v0.9.0
