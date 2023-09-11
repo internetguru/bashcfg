@@ -32,4 +32,6 @@ alias la='ls -lah'
 alias less='less -rSX'
 alias cpr='cp -pr' # copy dir, preserve mode, ownership, timestamps
 alias s='sublime_text_bg'
-
+alias dstop='sudo docker stop $(sudo docker ps -a -q)'
+alias fpull='flow --pull --conform'
+alias fpush='flow --push --conform'
