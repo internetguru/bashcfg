@@ -4,7 +4,15 @@ git_current_branch() {
   git branch | grep '\*' | tr -d '* '
 }
 git_diff_inclusive() {
-  git diff "HEAD~1..HEAD"
+  if [[ "${#}" -eq 0 ]]; then
+    git diff HEAD~1..HEAD
+  elif [[ "${#}" -ne 1 ]]; then
+    echo "Usage: gdi [hash] or gdi [hash1..hash2]"
+  elif [[ "${1}" =~ \.\. ]]; then
+    git diff "${1/../~1..}"
+  else
+    git diff "${1}~1..${1}"
+  fi
 }
 git_delete_branch() {
   git branch -d "${1}"
@@ -59,7 +67,7 @@ git_synchronize() {
 }
 
 alias gfi='gf --init'
-alias gdi='git_diff_inclusive HEAD'
+alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
 alias gls='git_log_since'
@@ -71,7 +79,7 @@ alias gc='git commit'
 alias gch='git checkout'
 alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
-alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
+alias gll="git log --color --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
 alias gsync='git_synchronize'
 alias guc='git reset --soft HEAD~1'
