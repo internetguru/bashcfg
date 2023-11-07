@@ -71,7 +71,7 @@ alias gc='git commit'
 alias gch='git checkout'
 alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
-alias gll="git log --all --color --graph --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
+alias gll="git log --color --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
 alias gsync='git_synchronize'
 alias guc='git reset --soft HEAD~1'
