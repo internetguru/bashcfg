@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Remove `graph` and `all` from the `gll` alias.
+
+### Fixed
+
+- Fix `gdi` to gd inclusive.
+
 ## [0.11.0] - 2023-09-11
 
 _Stable release based on [0.11.0-rc.1]._
