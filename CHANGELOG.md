@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Remove `sudo` from `docker` alias.
+
 ## [0.12.0] - 2023-11-07
 
 _Stable release based on [0.12.0-rc.1]._
