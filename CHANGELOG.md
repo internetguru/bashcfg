@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
 ## [0.13.0-rc.1] - 2024-09-25
 
 ### Changed
@@ -96,6 +98,7 @@ _Stable release based on [0.10.0-rc.2]._
  - git: refaktor gm a gvi na git_flow
  - .bashrc: rozdělení do samostatných souborů
 
+[Unreleased]: https://https://github.com/internetguru/bashcfg/compare/staging...dev
 [0.13.0-rc.1]: https://github.com/internetguru/bashcfg/releases/tag/v0.12.0
 [0.12.0]: https://https://github.com/InternetGuru/bashcfg/compare/v0.11.0...v0.12.0
 [0.12.0-rc.1]: https://github.com/InternetGuru/bashcfg/releases/tag/v0.11.0
