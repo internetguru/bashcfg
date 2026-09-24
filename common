@@ -1,14 +1,17 @@
 #!/bin/bash
 
+# take DIR: create DIR (including parents) and cd into it
 take() {
   mkdir -p "${1}" \
     && cd "${1}"
 }
+# jcar [CLASS]: compile and run a Java class from the current directory (default Main)
 jcar() {
   declare class="${1:-Main}"
   javac "${class%.*}.java" \
     && java "${class%.*}"
 }
+# jbcar [CLASS]: like jcar, but compile into ../bin
 jbcar() {
   declare class="${1:-Main}"
   [[ ! -f ${class%.*}.java ]] \
@@ -19,21 +22,65 @@ jbcar() {
   javac -d "../bin" "${class%.*}.java" \
     && java -classpath "../bin/" "${class%.*}"
 }
-sublime_text_bg() {
-  sublime_text "$@" &
+# alert: desktop notification showing the previous command, error icon if it failed
+#   usage: sleep 10; alert
+unalias alert 2>/dev/null # Ubuntu's ~/.bashrc defines alert as an alias
+alert() {
+  declare -r status="${?}"
+  declare icon="terminal"
+  [[ "${status}" -ne 0 ]] \
+    && icon="error"
+  notify-send --urgency=low --icon="${icon}" \
+    "$(history 1 | sed -e 's/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//')"
+}
+# rm_guard: rm, but prompt before every removal (rm -i) iff any target is outside $HOME
+#   a later -f still wins (rm -rf does not prompt); bypass with: command rm
+rm_guard() {
+  declare arg path home
+  declare options=true interactive=false
+  declare -a paths=()
+  for arg in "${@}"; do
+    [[ "${options}" == true && "${arg}" == -- ]] \
+      && options=false \
+      && continue
+    [[ "${options}" == true && "${arg}" == -?* ]] \
+      && continue
+    paths+=("${arg}")
+  done
+  home="$(realpath --canonicalize-missing -- "${HOME}")"
+  # decide inside the loop, run rm outside it: the loop's stdin is not the terminal
+  while IFS= read -r -d '' path; do
+    [[ "${path}" == "${home}/"?* ]] \
+      && continue
+    interactive=true
+    break
+  done < <(realpath --zero --canonicalize-missing -- "${paths[@]}" 2>/dev/null)
+  [[ "${interactive}" == true ]] \
+    && set -- --interactive=always "${@}"
+  command rm "${@}"
 }
 
+# navigation: . home, .. up one level, ... up two, .... up three
+# note: '.' shadows the source builtin in interactive shells, use 'source FILE'
 alias .='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
-alias ll='ls -lh'
-alias la='ls -lah'
-alias less='less -rSX'
-alias cpr='cp -pr' # copy dir, preserve mode, ownership, timestamps
-alias s='sublime_text_bg'
+# long listing with human-readable sizes (4.0K, 1.2M), la includes hidden files
+alias ll='ls --format=long --human-readable'
+alias la='ls --format=long --human-readable --all'
+# columns with type markers: / directory, * executable, @ symlink, | pipe, = socket
+alias l='ls --format=vertical --classify'
+# keep colors, don't wrap long lines (scroll with arrows), keep text on screen after quit
+alias less='less --RAW-CONTROL-CHARS --chop-long-lines --no-init'
+# highlight matches on a terminal; 'auto' emits no color codes into pipes and files
+# (egrep/fgrep are obsolescent, use grep -E/grep -F)
+alias grep='grep --color=auto'
+# copy a directory tree keeping mode, owner and timestamps (plain cp -r resets them)
+alias cpr='cp --recursive --preserve=mode,ownership,timestamps'
+alias rm='rm_guard'
+# stop all docker containers
 alias dstop='docker stop $(docker ps -a -q)'
+# flow: pull / push all branches, repairing git flow branch structure first
 alias fpull='flow --pull --conform'
 alias fpush='flow --push --conform'
-alias fpully='flow --pull --conform --yes'
-alias fpushy='flow --push --conform --yes'
