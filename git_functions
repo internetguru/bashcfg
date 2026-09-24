@@ -1,87 +1,104 @@
 #!/bin/bash
 
-git_current_branch() {
-  git branch | grep '\*' | tr -d '* '
-}
+# gdi [HASH | HASH1..HASH2]: diff including the given commit(s), default last commit
 git_diff_inclusive() {
   if [[ "${#}" -eq 0 ]]; then
     git diff HEAD~1..HEAD
   elif [[ "${#}" -ne 1 ]]; then
-    echo "Usage: gdi [hash] or gdi [hash1..hash2]"
+    echo "Usage: gdi [hash] or gdi [hash1..hash2]" >&2
+    return 1
   elif [[ "${1}" =~ \.\. ]]; then
     git diff "${1/../~1..}"
   else
     git diff "${1}~1..${1}"
   fi
 }
+# gdb BRANCH: delete branch locally and on origin
 git_delete_branch() {
   git branch -d "${1}"
   git push origin :refs/heads/"${1}"
 }
+# gdt TAG: delete tag locally and on origin
 git_delete_tag() {
   git tag -d "${1}"
   git push origin :refs/tags/"${1}"
 }
+# gls [HASH]: one-line log since HASH (inclusive), default whole history
 git_log_since() {
-  git log --decorate --oneline "${1:+${1}~1..}"
+  git log --decorate --oneline ${1:+"${1}~1.."}
 }
+# gup [LOCAL [REMOTE]]: make LOCAL (default current) track REMOTE (default origin/LOCAL),
+#   creating LOCAL if it does not exist
 git_upstream() {
-  declare -r local="${1:-$(git_current_branch)}"
+  declare -r local="${1:-$(git branch --show-current)}"
   declare -r remote="${2:-origin/${local}}"
-  git branch | grep --quiet " ${local}$" \
-    && git branch --set-upstream-to="${remote}" "${local}" \
-    && return $?
-  git branch --track "${local}" "${remote}"
+  if git show-ref --verify --quiet "refs/heads/${local}"; then
+    git branch --set-upstream-to="${remote}" "${local}"
+  else
+    git branch --track "${local}" "${remote}"
+  fi
 }
+# gsync: mirror origin into the local repository and back
+#   fetch tags, prune deleted origin branches, track and fast-forward a local branch
+#   for every origin branch, delete merged local branches missing on origin,
+#   update submodules, then push ALL local branches and tags to origin
 git_synchronize() {
-    # sync tags
-    echo '=== sync tags ==='
-    git fetch --tags --all
-    # sync remote branches
-    echo '=== get branches ==='
-    git remote update origin --prune
-    # set local branch & upstream for each remote branch
-    echo '=== upstream and update ==='
-    git branch --remotes | grep --invert-match '\->' | while read -r remote; do
-      declare local="${remote#origin/}"
-      git_upstream "${local}" "${remote}"
-      [[ "${local}" == "$(git_current_branch)" ]] \
-        && git pull \
-        && continue
+  # sync tags
+  echo '=== sync tags ==='
+  git fetch --tags --all
+  # sync remote branches
+  echo '=== get branches ==='
+  git remote update origin --prune
+  # set local branch & upstream (unless already tracking) for each origin branch
+  echo '=== upstream and update ==='
+  git for-each-ref --format='%(refname:lstrip=3)' refs/remotes/origin/ | while read -r local; do
+    [[ "${local}" == HEAD ]] \
+      && continue
+    declare remote="origin/${local}"
+    [[ "$(git for-each-ref --format='%(upstream:short)' "refs/heads/${local}")" == "${remote}" ]] \
+      || git_upstream "${local}" "${remote}"
+    if [[ "${local}" == "$(git branch --show-current)" ]]; then
+      git pull
+    else
       git fetch origin "${local}:${local}"
-    done
-    # remove local merged branches without a corresponding remote
-    echo '=== remove merged ==='
-    git branch --merged | while read -r local; do
-      git branch --remotes | grep --quiet " origin/${local#* }$" \
-        && continue
-      git branch --delete --force "${local#* }"
-    done
-    # update submodules
-    echo '=== update submodules ==='
-    git submodule update --init --recursive
-    # git push
-    echo '=== push all branches and tags ==='
-    git push --all
-    git push --tags
+    fi
+  done
+  # remove local merged branches without a corresponding remote
+  echo '=== remove merged ==='
+  git branch --merged | while read -r local; do
+    git branch --remotes | grep --quiet " origin/${local#* }$" \
+      && continue
+    git branch --delete --force "${local#* }"
+  done
+  # update submodules
+  echo '=== update submodules ==='
+  git submodule update --init --recursive
+  # git push
+  echo '=== push all branches and tags ==='
+  git push --all
+  git push --tags
 }
 
-alias gfi='gf --init'
+alias gfi='flow --init'
 alias gdi='git_diff_inclusive'
 alias gdb='git_delete_branch'
 alias gdt='git_delete_tag'
 alias gls='git_log_since'
 alias gup='git_upstream'
-alias gcb='git_current_branch'
-alias gb='git checkout -b'
+# gb BRANCH [START]: create BRANCH (from START, default HEAD) and switch to it
+alias gb='git switch --create'
 alias gd='git diff'
 alias gc='git commit'
-alias gch='git checkout'
+# git checkout mixes switching branches and restoring files, use git switch / git restore
+alias gch="echo 'Use git switch to switch branch.' >&2; false"
+alias gs='git switch'
+alias gst='git status'
 alias gl="git log --oneline --decorate --color --graph"
 alias gla="gl --all"
 alias gll="git log --color --abbrev-commit --pretty=format:'%C(red)%h%Creset%C(yellow)%d%Creset %s %C(green)%cr%C(white dim) %an%Creset'"
 alias gpush='git push --all; git push --tags'
 alias gsync='git_synchronize'
+# undo the last commit, keep its changes staged
 alias guc='git reset --soft HEAD~1'
-alias gs='git status'
-alias gaas='git add -A; gs'
+# stage everything (new, modified, deleted) and show status
+alias gaas='git add --all; git status'
