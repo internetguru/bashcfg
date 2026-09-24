@@ -6,6 +6,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add `install` script that makes `~/.bashrc` source bashcfg and removes duplicate aliases.
+- Add `gs` alias for `git switch` and `gst` alias for `git status`.
+- Add `alert` function, `grep` and `l` aliases moved from Ubuntu's default `~/.bashrc`.
+- Add `rm` alias prompting before every removal if a target is outside `$HOME`.
+- Add descriptions to aliases and functions.
+
+### Changed
+
+- Change `gs` from `git status` to `git switch`, use `gst` for status.
+- Change `gch` to print an error pointing to `git switch`.
+- Change `gb` to use `git switch --create`.
+- Change `gfi` to use `flow --init`.
+- Change `gsync` to set upstream only when missing and to sync `origin` branches only.
+- Change `less` alias to pass only color escape sequences (`-R` instead of `-r`).
+- Use long options in `cpr`, `less`, `ll` and `la` aliases.
+
+### Removed
+
+- Remove `s` alias with `sublime_text_bg` function.
+- Remove `fpully` and `fpushy` aliases.
+- Remove `gcb` alias with `git_current_branch` function, use `git branch --show-current`.
+
+### Fixed
+
+- Fix `gls` without argument.
+- Fix `gdi` usage error exit status.
+- Fix `gup` trying to create an existing branch when setting its upstream fails.
+- Fix `gsync` creating local branches for remotes other than `origin`.
+
 ## [0.13.0] - 2024-09-25
 
 _Stable release based on [0.13.0-rc.1]._
