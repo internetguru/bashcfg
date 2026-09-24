@@ -1,0 +1,174 @@
+#!/bin/bash
+#
+# Make RCFILE (default ~/.bashrc) source bashcfg from this directory and drop
+# aliases defined before it that bashcfg redefines (they are dead code, and an
+# alias clashes with a function of the same name) or that are obsolete.
+# Functions and definitions after bashcfg (intentional overrides) are only reported.
+# Idempotent; shows a diff, validates the result with bash -n and keeps a backup.
+
+set -euo pipefail
+
+declare -r BASHCFG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+declare -r BLOCK_BEGIN='# >>> bashcfg >>>'
+declare -r BLOCK_END='# <<< bashcfg <<<'
+# aliases to drop although bashcfg does not define them
+declare -r OBSOLETE='egrep fgrep'
+
+usage() {
+  echo "Usage: ${0##*/} [-n|--dry-run] [RCFILE]"
+}
+
+# names of all aliases and functions defined by bashcfg
+bashcfg_names() {
+  sed -nE 's/^alias ([^=]+)=.*/\1/p; s/^([[:alnum:]_]+)\(\).*/\1/p' \
+    "${BASHCFG_DIR}/common" "${BASHCFG_DIR}/git_functions"
+}
+
+bashcfg_block() {
+  echo "${BLOCK_BEGIN}"
+  printf 'echo "IG bashcfg, version $(< %q)"\n' "${BASHCFG_DIR}/VERSION"
+  printf 'source %q\n' "${BASHCFG_DIR}/common" "${BASHCFG_DIR}/git_functions"
+  echo "${BLOCK_END}"
+}
+
+# print FILE with the bashcfg block in place of the existing (or legacy) one
+# and without dropped aliases; warnings go to stderr
+rewrite() {
+  declare -r file="${1}"
+  NAMES="$(bashcfg_names | tr '\n' ' ') ${OBSOLETE}" \
+  BLOCK="$(bashcfg_block)" BEGIN_MARK="${BLOCK_BEGIN}" END_MARK="${BLOCK_END}" \
+  awk '
+    function is_block_start(line) {
+      return line == ENVIRON["BEGIN_MARK"] \
+        || (line !~ /^[ \t]*#/ && line ~ /bashcfg\/(common|git_functions|VERSION)/)
+    }
+    function alias_name(line) {
+      if (line !~ /^[ \t]*alias[ \t]+[^ \t=]+=/) return ""
+      sub(/^[ \t]*alias[ \t]+/, "", line)
+      sub(/=.*/, "", line)
+      return line
+    }
+    function func_name(line) {
+      if (line ~ /^[ \t]*function[ \t]+[^ \t(){}]+/) sub(/^[ \t]*function[ \t]+/, "", line)
+      else if (line !~ /^[ \t]*[^ \t(){}#=$]+[ \t]*\(\)/) return ""
+      sub(/^[ \t]*/, "", line)
+      sub(/[ \t(){}].*/, "", line)
+      return line
+    }
+    function warn(name) {
+      printf "%s:%d: %s is also defined by bashcfg, kept\n", FILENAME, FNR, name > "/dev/stderr"
+    }
+    # print pending blank lines (collapsed after a dropped group), then line
+    function emit(line) {
+      if (dropped && blanks > 1) blanks = 1
+      for (; blanks > 0; blanks--) print ""
+      dropped = 0
+      print line
+    }
+    # comments followed by aliases form a group, dropped as a whole if all its aliases are
+    function flush(   i) {
+      if (nalias > 0 && nkept == 0) dropped = 1
+      else for (i = 1; i <= nbuf; i++) if (!bufdrop[i]) emit(buf[i])
+      nbuf = nalias = nkept = 0
+    }
+    function buffer(line, drop) {
+      buf[++nbuf] = line
+      bufdrop[nbuf] = drop
+    }
+    function place_block() {
+      flush()
+      if (!placed) emit(ENVIRON["BLOCK"])
+      placed = 1
+    }
+    BEGIN {
+      n = split(ENVIRON["NAMES"], list, " ")
+      for (i = 1; i <= n; i++) names[list[i]] = 1
+    }
+    pass == 1 {
+      if (!block_at && is_block_start($0)) block_at = FNR
+      next
+    }
+    in_block {
+      if ($0 == ENVIRON["END_MARK"]) in_block = 0
+      next
+    }
+    is_block_start($0) {
+      place_block()
+      in_block = ($0 == ENVIRON["BEGIN_MARK"])
+      next
+    }
+    {
+      before = !block_at || FNR < block_at
+      name = alias_name($0)
+      fname = func_name($0)
+      if (fname in names) warn(fname)
+      if (name in names && !before) warn(name)
+      if ($0 ~ /^[ \t]*$/) {
+        flush()
+        blanks++
+      } else if ($0 ~ /^[ \t]*#/) {
+        if (nalias) flush()
+        buffer($0, 0)
+      } else if (name != "") {
+        nalias++
+        drop = before && (name in names)
+        if (!drop) nkept++
+        buffer($0, drop)
+      } else {
+        flush()
+        emit($0)
+      }
+    }
+    END {
+      flush()
+      if (!placed) {
+        blanks = (NR > 0)
+        place_block()
+      }
+      for (; blanks > 0; blanks--) print ""
+    }
+  ' pass=1 "${file}" pass=2 "${file}"
+}
+
+main() {
+  declare dry_run=false
+  declare rcfile="${HOME}/.bashrc"
+  while (( ${#} > 0 )); do
+    case "${1}" in
+      -n|--dry-run) dry_run=true ;;
+      -h|--help) usage; return 0 ;;
+      -*) usage >&2; return 2 ;;
+      *) rcfile="${1}" ;;
+    esac
+    shift
+  done
+  declare input="${rcfile}"
+  [[ -e "${rcfile}" ]] \
+    || input=/dev/null
+  declare -r tmp="$(mktemp)"
+  trap "rm -f -- $(printf %q "${tmp}")" EXIT
+  rewrite "${input}" > "${tmp}"
+  if cmp --silent "${input}" "${tmp}"; then
+    echo "${rcfile} is up to date."
+    return 0
+  fi
+  diff --unified --label "${rcfile}" --label "${rcfile} (new)" "${input}" "${tmp}" || true
+  if ! bash -n "${tmp}"; then
+    echo "Result is not valid bash, ${rcfile} left unchanged." >&2
+    return 1
+  fi
+  if [[ "${dry_run}" == true ]]; then
+    echo "Dry run, ${rcfile} left unchanged."
+    return 0
+  fi
+  if [[ -e "${rcfile}" ]]; then
+    declare -r backup="${rcfile}.bak-$(date +%Y%m%d%H%M%S)"
+    cp -p -- "${rcfile}" "${backup}"
+    echo "Backup saved to ${backup}"
+  fi
+  # write in place to keep permissions and symlinks
+  cat "${tmp}" > "${rcfile}"
+  echo "${rcfile} updated, open a new terminal to apply."
+}
+
+main "${@}"
